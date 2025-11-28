@@ -54,11 +54,11 @@ export async function POST(
       .select()
       .from(badgeUnlocks)
       .where(
-        and (
-          eq(badgeUnlocks.collageId, params.id))
+        and(
+          eq(badgeUnlocks.collageId, params.id),
           eq(badgeUnlocks.badgeId, badge.id)
-      )
-    );
+        )
+      );
 
     if (existingBadges.length === 0) {
       // Unlock badge
