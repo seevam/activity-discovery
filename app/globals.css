@@ -67,16 +67,7 @@
     @apply w-12 h-12 rounded-full p-0 flex items-center justify-center;
   }
 
-  /* Input fields */
-  .input-field {
-    @apply border-3 border-gray-300 rounded-xl px-4 py-3 text-base transition-all;
-    font-family: 'Nunito', sans-serif;
-  }
 
-  .input-field:focus {
-    @apply border-blue-primary outline-none;
-    box-shadow: 0 0 0 4px rgba(0, 107, 255, 0.1);
-  }
 
   .input-field::placeholder {
     @apply text-gray-400;
