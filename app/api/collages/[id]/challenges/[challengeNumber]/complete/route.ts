@@ -53,8 +53,12 @@ export async function POST(
     const existingBadges = await db
       .select()
       .from(badgeUnlocks)
-      .where(eq(badgeUnlocks.collageId, params.id))
-      .where(eq(badgeUnlocks.badgeId, badge.id));
+      .where(
+        and (
+          eq(badgeUnlocks.collageId, params.id))
+          eq(badgeUnlocks.badgeId, badge.id)
+      )
+    );
 
     if (existingBadges.length === 0) {
       // Unlock badge
