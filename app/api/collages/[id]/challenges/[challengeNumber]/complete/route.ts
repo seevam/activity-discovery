@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { identityCollages, badgeUnlocks } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { BADGES } from '@/lib/constants/badges';
 
 // POST /api/collages/[id]/challenges/[challengeNumber]/complete
