@@ -5,9 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+
   body {
     @apply bg-white text-gray-900;
     font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
