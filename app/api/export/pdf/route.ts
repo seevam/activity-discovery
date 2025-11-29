@@ -9,7 +9,7 @@ import { jsPDF } from 'jspdf';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { collageId } = body;
+    const { collageId, canvasDataUrl } = body;
 
     if (!collageId) {
       return NextResponse.json({ error: 'collageId is required' }, { status: 400 });
@@ -26,6 +26,9 @@ export async function POST(request: Request) {
     }
 
     const collage = collages[0];
+
+    // Use provided canvas data URL, or fall back to stored pngUrl
+    const imageUrl = canvasDataUrl || collage.pngUrl;
 
     // Ensure badgesEarned is an array
     const badgesEarned = Array.isArray(collage.badgesEarned) ? collage.badgesEarned : [];
@@ -48,14 +51,14 @@ export async function POST(request: Request) {
     yPosition += 15;
 
     // Add collage image if available
-    if (collage.pngUrl) {
+    if (imageUrl) {
       try {
         // Add image (centered, max width 170mm)
         const imgWidth = 170;
         const imgHeight = 120; // Maintain aspect ratio
         const xPosition = (pageWidth - imgWidth) / 2;
 
-        doc.addImage(collage.pngUrl, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+        doc.addImage(imageUrl, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
         yPosition += imgHeight + 10;
       } catch (error) {
         console.error('Failed to add image to PDF:', error);
