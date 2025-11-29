@@ -155,7 +155,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
 
       fabric.Image.fromURL(
         url,
-        (img) => {
+        (img: fabric.Image) => {
           if (!fabricRef.current || !img) {
             reject(new Error('Failed to load image'));
             return;
