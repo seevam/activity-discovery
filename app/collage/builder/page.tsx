@@ -27,6 +27,10 @@ export default function BuilderPage() {
   const [aiCreditsUsed, setAiCreditsUsed] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [templateData, setTemplateData] = useState<any>(null);
+  const [canvasBackground, setCanvasBackground] = useState<{
+    color?: string;
+    gradient?: { color1: string; color2: string };
+  }>({ color: '#FFFFFF' });
 
   const {
     challenges,
@@ -50,6 +54,13 @@ export default function BuilderPage() {
         const parsedTemplate = JSON.parse(template);
         console.log('[Builder] Loaded template:', parsedTemplate);
         setTemplateData(parsedTemplate);
+
+        // Set canvas background once based on template
+        if (parsedTemplate.id === 'prefilled') {
+          setCanvasBackground({ gradient: { color1: '#BCF2F6', color2: '#FFF100' } });
+        } else {
+          setCanvasBackground({ color: parsedTemplate.backgroundColor || '#FFFFFF' });
+        }
       } catch (error) {
         console.error('Failed to parse template:', error);
       }
@@ -102,10 +113,6 @@ export default function BuilderPage() {
 
     initCollage();
   }, [router, studentId]);
-
-  // Determine canvas background from template
-  const canvasBackgroundColor = templateData?.id === 'prefilled' ? undefined : (templateData?.backgroundColor || '#FFFFFF');
-  const canvasBackgroundGradient = templateData?.id === 'prefilled' ? { color1: '#BCF2F6', color2: '#FFF100' } : undefined;
 
   // Update challenge progress when canvas changes
   useEffect(() => {
@@ -276,8 +283,8 @@ export default function BuilderPage() {
                 ref={canvasRef}
                 width={800}
                 height={600}
-                backgroundColor={canvasBackgroundColor}
-                backgroundGradient={canvasBackgroundGradient}
+                backgroundColor={canvasBackground.color}
+                backgroundGradient={canvasBackground.gradient}
                 onObjectAdded={updateChallengeProgress}
                 onObjectRemoved={updateChallengeProgress}
                 onObjectModified={updateChallengeProgress}
