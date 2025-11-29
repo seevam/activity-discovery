@@ -32,6 +32,7 @@ interface FabricCanvasProps {
   onObjectAdded?: () => void;
   onObjectRemoved?: () => void;
   onObjectModified?: () => void;
+  onReady?: () => void;
 }
 
 const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
@@ -43,6 +44,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     onObjectAdded,
     onObjectRemoved,
     onObjectModified,
+    onReady,
   } = props;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,6 +104,9 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
       console.log('[FabricCanvas] Canvas ready, setting isCanvasReady to true');
       setIsCanvasReady(true);
 
+      // Notify parent that canvas is ready
+      onReady?.();
+
       // Listen for changes
       fabricRef.current.on('object:modified', () => {
         saveState();
@@ -131,7 +136,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     };
     // Only run on mount - background is applied once during initialization
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, height, onObjectAdded, onObjectRemoved, onObjectModified]);
+  }, [width, height, onObjectAdded, onObjectRemoved, onObjectModified, onReady]);
 
   // Save state for undo/redo
   const saveState = () => {
