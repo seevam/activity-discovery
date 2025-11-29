@@ -2,18 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import FabricCanvas from '@/components/canvas/FabricCanvas';
-import { ToolPanel } from '@/components/canvas/ToolPanel';
-import { ChallengePanel } from '@/components/canvas/ChallengePanel';
-import { BadgeSidebar } from '@/components/canvas/BadgeSidebar';
+import dynamic from 'next/dynamic';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Button } from '@/components/ui/Button';
 import { useCanvas } from '@/hooks/useCanvas';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useChallenges } from '@/hooks/useChallenges';
-import confetti from 'canvas-confetti';
 
-export const dynamic = 'force-dynamic';
+// Dynamically import canvas components with SSR disabled
+const FabricCanvas = dynamic(() => import('@/components/canvas/FabricCanvas'), { ssr: false });
+const ToolPanel = dynamic(() => import('@/components/canvas/ToolPanel'), { ssr: false });
+const ChallengePanel = dynamic(() => import('@/components/canvas/ChallengePanel'), { ssr: false });
+const BadgeSidebar = dynamic(() => import('@/components/canvas/BadgeSidebar'), { ssr: false });
+
+// Dynamically import confetti to avoid SSR issues
+const confetti = typeof window !== 'undefined' ? require('canvas-confetti') : null;
 
 export default function BuilderPage() {
   const router = useRouter();
@@ -105,11 +108,13 @@ export default function BuilderPage() {
   };
 
   const triggerCelebration = () => {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
+    if (confetti) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    }
 
     setShowCelebration(true);
     setTimeout(() => setShowCelebration(false), 3000);
