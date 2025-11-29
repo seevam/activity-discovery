@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
     // Add semi-transparent overlay for gradient effect
     doc.setFillColor('#4A9EFF');
-    doc.setGState(new doc.GState({ opacity: 0.5 }));
+    doc.setGState(new (doc.GState as any)({ opacity: 0.5 }));
     doc.rect(0, 0, pageWidth, headerHeight / 2, 'F');
     
     doc.setGState(new (doc.GState as any)({ opacity: 0.5 })); // Reset opacity
