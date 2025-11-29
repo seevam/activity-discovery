@@ -11,6 +11,7 @@ declare module 'fabric' {
       setBackgroundColor(color: string | any, callback?: Function): Canvas;
       getObjects(): Object[];
       getActiveObject(): Object | null;
+      getActiveObjects(): Object[];
       setActiveObject(object: Object): Canvas;
       discardActiveObject(): Canvas;
       requestRenderAll(): void;
