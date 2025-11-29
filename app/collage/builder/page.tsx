@@ -34,11 +34,32 @@ export default function BuilderPage() {
   const [studentId] = useState('demo-student-123'); // TODO: Get from auth
   const [aiCreditsUsed, setAiCreditsUsed] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
   const [templateData, setTemplateData] = useState<any>(null);
   const [canvasBackground, setCanvasBackground] = useState<{
     color?: string;
     gradient?: { color1: string; color2: string };
   }>({ color: '#FFFFFF' });
+
+  // Handle canvas ready - force update
+  const handleCanvasReady = () => {
+    console.log('[Builder] Canvas ready callback triggered');
+    setCanvasReady(true);
+    // Force a check of the ref after a short delay to ensure it's populated
+    setTimeout(() => {
+      console.log('[Builder] Canvas ref after ready:', {
+        hasRef: !!canvasRef.current,
+        methods: canvasRef.current ? Object.keys(canvasRef.current) : []
+      });
+    }, 100);
+  };
+
+  // Handle canvas mount - manually populate ref (workaround for dynamic import ref issue)
+  const handleCanvasMount = (api: any) => {
+    console.log('[Builder] Canvas mount callback - manually setting ref');
+    (canvasRef as any).current = api;
+    setCanvasReady(true);
+  };
 
   const {
     challenges,
@@ -305,6 +326,8 @@ export default function BuilderPage() {
                 onObjectAdded={updateChallengeProgress}
                 onObjectRemoved={updateChallengeProgress}
                 onObjectModified={updateChallengeProgress}
+                onReady={handleCanvasReady}
+                onMount={handleCanvasMount}
               />
             </div>
 

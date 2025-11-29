@@ -33,6 +33,7 @@ interface FabricCanvasProps {
   onObjectRemoved?: () => void;
   onObjectModified?: () => void;
   onReady?: () => void;
+  onMount?: (api: CanvasRef) => void;
 }
 
 const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
@@ -45,6 +46,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     onObjectRemoved,
     onObjectModified,
     onReady,
+    onMount,
   } = props;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -393,41 +395,45 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     return fabricRef.current?.getObjects() || [];
   };
 
-  // Expose methods to parent - use empty deps so functions always access current fabricRef
-  useImperativeHandle(
-    ref,
-    () => {
-      console.log('[FabricCanvas] useImperativeHandle running, fabricRef.current:', !!fabricRef.current);
-      return {
-        get canvas() {
-          return fabricRef.current;
-        },
-        addImage,
-        addText,
-        addSticker,
-        deleteSelected,
-        bringToFront,
-        sendToBack,
-        bringForward,
-        sendBackward,
-        undo,
-        redo,
-        clear: () => {
-          fabricRef.current?.clear();
-          fabricRef.current?.setBackgroundColor(backgroundColor, () => {
-            fabricRef.current?.renderAll();
-          });
-        },
-        setBackgroundColor,
-        setBackgroundGradient,
-        toJSON,
-        loadFromJSON,
-        exportPNG,
-        getObjects,
-      };
+  // Create canvas API object
+  const canvasAPI: CanvasRef = {
+    get canvas() {
+      return fabricRef.current;
     },
-    [] // Empty deps - functions capture fabricRef which is always current
-  );
+    addImage,
+    addText,
+    addSticker,
+    deleteSelected,
+    bringToFront,
+    sendToBack,
+    bringForward,
+    sendBackward,
+    undo,
+    redo,
+    clear: () => {
+      fabricRef.current?.clear();
+      fabricRef.current?.setBackgroundColor(backgroundColor, () => {
+        fabricRef.current?.renderAll();
+      });
+    },
+    setBackgroundColor,
+    setBackgroundGradient,
+    toJSON,
+    loadFromJSON,
+    exportPNG,
+    getObjects,
+  };
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => canvasAPI, []);
+
+  // Also call onMount callback with the API (for dynamic imports where ref doesn't work)
+  useEffect(() => {
+    if (fabricRef.current && onMount) {
+      console.log('[FabricCanvas] Calling onMount with canvas API');
+      onMount(canvasAPI);
+    }
+  }, [onMount]);
 
   // Debug: Log when isCanvasReady changes
   useEffect(() => {
