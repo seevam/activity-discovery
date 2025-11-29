@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { TextArea } from '@/components/ui/Input';
@@ -8,9 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { AboutMeSuggestion } from '@/types/collage';
 
-export const dynamic = 'force-dynamic';
-
-export default function AboutMePage() {
+function AboutMeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const collageId = searchParams.get('id');
@@ -252,5 +250,13 @@ export default function AboutMePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AboutMePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+      <AboutMeContent />
+    </Suspense>
   );
 }

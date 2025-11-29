@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -9,9 +9,7 @@ import { BADGES } from '@/lib/constants/badges';
 import { Badge as BadgeType } from '@/types/collage';
 import confetti from 'canvas-confetti';
 
-export const dynamic = 'force-dynamic';
-
-export default function ReviewPage() {
+function ReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const collageId = searchParams.get('id');
@@ -316,5 +314,18 @@ export default function ReviewPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-4xl mb-4">⏳</div>
+        <div className="text-xl font-semibold text-gray-900">Loading your collage...</div>
+      </div>
+    </div>}>
+      <ReviewContent />
+    </Suspense>
   );
 }
