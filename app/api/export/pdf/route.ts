@@ -59,7 +59,8 @@ export async function POST(request: Request) {
     doc.setFillColor('#4A9EFF');
     doc.setGState(new doc.GState({ opacity: 0.5 }));
     doc.rect(0, 0, pageWidth, headerHeight / 2, 'F');
-    doc.setGState(new doc.GState({ opacity: 1 })); // Reset opacity
+    
+    doc.setGState(new (doc.GState as any)({ opacity: 0.5 })); // Reset opacity
 
     // Title in header
     doc.setTextColor(255, 255, 255); // White text
