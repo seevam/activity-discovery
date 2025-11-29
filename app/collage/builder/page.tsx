@@ -47,13 +47,17 @@ export default function BuilderPage() {
       const session1Input = localStorage.getItem('session1Input');
       const template = localStorage.getItem('selectedTemplate');
 
+      console.log('Initializing collage...', { session1Input, template });
+
       if (!session1Input || !template) {
+        console.log('Missing session1Input or template, redirecting...');
         router.push('/collage/session1-input');
         return;
       }
 
       try {
         // Create collage via API
+        console.log('Creating collage via API...');
         const response = await fetch('/api/collages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -64,12 +68,20 @@ export default function BuilderPage() {
           }),
         });
 
+        console.log('API Response:', response.status, response.statusText);
+
         if (response.ok) {
           const collage = await response.json();
+          console.log('Collage created:', collage);
           setCollageId(collage.id);
+        } else {
+          const errorData = await response.json();
+          console.error('Failed to create collage:', response.status, errorData);
+          alert(`Failed to create collage: ${errorData.error || 'Unknown error'}`);
         }
       } catch (error) {
         console.error('Failed to create collage:', error);
+        alert(`Error creating collage: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
 
