@@ -88,6 +88,40 @@ export default function BuilderPage() {
     initCollage();
   }, [router, studentId]);
 
+  // Apply template background to canvas
+  useEffect(() => {
+    if (!collageId) return;
+
+    const templateData = localStorage.getItem('selectedTemplate');
+    if (!templateData) return;
+
+    // Wait for canvas to be fully initialized
+    const applyBackground = () => {
+      if (!canvasRef.current?.canvas) {
+        // Canvas not ready yet, try again
+        setTimeout(applyBackground, 100);
+        return;
+      }
+
+      try {
+        const template = JSON.parse(templateData);
+
+        // Apply background based on template type
+        if (template.id === 'prefilled') {
+          // Apply gradient for prefilled template
+          canvasRef.current.setBackgroundGradient('#BCF2F6', '#FFF100');
+        } else if (template.backgroundColor) {
+          // Apply solid color for other templates
+          canvasRef.current.setBackgroundColor(template.backgroundColor);
+        }
+      } catch (error) {
+        console.error('Failed to apply template background:', error);
+      }
+    };
+
+    applyBackground();
+  }, [collageId]);
+
   // Update challenge progress when canvas changes
   useEffect(() => {
     updateChallengeProgress();
