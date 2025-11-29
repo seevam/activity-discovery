@@ -11,9 +11,9 @@ import { useChallenges } from '@/hooks/useChallenges';
 
 // Dynamically import canvas components with SSR disabled
 const FabricCanvas = dynamic(() => import('@/components/canvas/FabricCanvas'), { ssr: false });
-const ToolPanel = dynamic(() => import('@/components/canvas/ToolPanel'), { ssr: false });
-const ChallengePanel = dynamic(() => import('@/components/canvas/ChallengePanel'), { ssr: false });
-const BadgeSidebar = dynamic(() => import('@/components/canvas/BadgeSidebar'), { ssr: false });
+const ToolPanel = dynamic(() => import('@/components/canvas/ToolPanel').then(mod => ({ default: mod.ToolPanel })), { ssr: false });
+const ChallengePanel = dynamic(() => import('@/components/canvas/ChallengePanel').then(mod => ({ default: mod.ChallengePanel })), { ssr: false });
+const BadgeSidebar = dynamic(() => import('@/components/canvas/BadgeSidebar').then(mod => ({ default: mod.BadgeSidebar })), { ssr: false });
 
 // Dynamically import confetti to avoid SSR issues
 const confetti = typeof window !== 'undefined' ? require('canvas-confetti') : null;
