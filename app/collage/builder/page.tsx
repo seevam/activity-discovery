@@ -103,7 +103,11 @@ export default function BuilderPage() {
 
   // Apply template background to canvas
   useEffect(() => {
-    if (!templateData || !canvasRef.current) return;
+    // Wait for both template and canvas to be ready
+    if (!templateData) {
+      console.log('Template data not loaded yet');
+      return;
+    }
 
     console.log('Applying template background:', templateData);
 
@@ -135,9 +139,9 @@ export default function BuilderPage() {
       }
     };
 
-    // Small delay to ensure canvas is mounted
-    setTimeout(applyBackground, 100);
-  }, [templateData, canvasRef.current]);
+    // Start trying to apply background
+    applyBackground();
+  }, [templateData, collageId]); // Trigger when template loads AND when collage is created
 
   // Update challenge progress when canvas changes
   useEffect(() => {
