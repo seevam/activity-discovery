@@ -146,6 +146,10 @@ export async function generateAIImage(
     quality: 'standard',
   });
 
+  if (!response.data || response.data.length === 0) {
+    throw new Error('No image data in response');
+  }
+
   const imageUrl = response.data[0].url;
   if (!imageUrl) {
     throw new Error('No image URL in response');
