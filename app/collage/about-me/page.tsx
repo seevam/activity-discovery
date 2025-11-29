@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { AboutMeSuggestion } from '@/types/collage';
 
+export const dynamic = 'force-dynamic';
+
 export default function AboutMePage() {
   const router = useRouter();
   const searchParams = useSearchParams();

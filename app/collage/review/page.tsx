@@ -9,6 +9,8 @@ import { BADGES } from '@/lib/constants/badges';
 import { Badge as BadgeType } from '@/types/collage';
 import confetti from 'canvas-confetti';
 
+export const dynamic = 'force-dynamic';
+
 export default function ReviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
