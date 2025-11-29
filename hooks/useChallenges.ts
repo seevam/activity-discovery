@@ -96,9 +96,9 @@ export function useChallenges(getElementsForChallenge: (id: number) => any[]) {
   const nextChallenge = useCallback(() => {
     if (currentChallenge < 5) {
       setCurrentChallenge((prev) => prev + 1);
-    } else {
-      setCurrentChallenge(6); // Final challenge (About Me)
     }
+    // Don't increment past challenge 5
+    // The UI will show the "All Challenges Complete" message instead
   }, [currentChallenge]);
 
   // Go to previous challenge

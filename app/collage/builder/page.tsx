@@ -170,10 +170,13 @@ export default function BuilderPage() {
         }, 1000);
       }
 
-      // Move to next challenge
-      setTimeout(() => {
-        nextChallenge();
-      }, 2000);
+      // Move to next challenge (only for challenges 1-4)
+      // Challenge 5 completion shows the "All Challenges Complete" message instead
+      if (currentChallenge < 5) {
+        setTimeout(() => {
+          nextChallenge();
+        }, 2000);
+      }
     }
   };
 
