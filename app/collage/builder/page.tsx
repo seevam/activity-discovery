@@ -47,7 +47,9 @@ export default function BuilderPage() {
     const template = localStorage.getItem('selectedTemplate');
     if (template) {
       try {
-        setTemplateData(JSON.parse(template));
+        const parsedTemplate = JSON.parse(template);
+        console.log('[Builder] Loaded template:', parsedTemplate);
+        setTemplateData(parsedTemplate);
       } catch (error) {
         console.error('Failed to parse template:', error);
       }
@@ -101,61 +103,9 @@ export default function BuilderPage() {
     initCollage();
   }, [router, studentId]);
 
-  // Apply template background to canvas
-  useEffect(() => {
-    // Wait for both template and canvas to be ready
-    if (!templateData) {
-      console.log('Template data not loaded yet');
-      return;
-    }
-
-    console.log('Applying template background:', templateData);
-
-    let retryCount = 0;
-    const MAX_RETRIES = 40; // 40 * 100ms = 4 seconds max
-
-    // Wait for canvas to be fully initialized
-    const applyBackground = () => {
-      console.log(`[Retry ${retryCount}] Checking canvas...`, {
-        hasCanvasRef: !!canvasRef.current,
-        hasCanvas: !!canvasRef.current?.canvas,
-        canvasRef: canvasRef.current
-      });
-
-      if (!canvasRef.current?.canvas) {
-        retryCount++;
-        if (retryCount >= MAX_RETRIES) {
-          console.error('Canvas failed to initialize after', retryCount, 'retries. Giving up.');
-          return;
-        }
-        // Canvas not ready yet, try again in 100ms
-        console.log('Canvas not ready, retrying in 100ms...');
-        setTimeout(applyBackground, 100);
-        return;
-      }
-
-      console.log('Canvas ready! Applying background...');
-
-      try {
-        // Apply background based on template type
-        if (templateData.id === 'prefilled') {
-          // Apply gradient for prefilled template
-          console.log('Applying gradient background');
-          canvasRef.current.setBackgroundGradient('#BCF2F6', '#FFF100');
-        } else if (templateData.backgroundColor) {
-          // Apply solid color for other templates
-          console.log('Applying solid background:', templateData.backgroundColor);
-          canvasRef.current.setBackgroundColor(templateData.backgroundColor);
-        }
-        console.log('Background applied successfully');
-      } catch (error) {
-        console.error('Failed to apply template background:', error);
-      }
-    };
-
-    // Start trying to apply background with a small initial delay
-    setTimeout(applyBackground, 200);
-  }, [templateData, collageId]); // Trigger when template loads AND when collage is created
+  // Determine canvas background from template
+  const canvasBackgroundColor = templateData?.id === 'prefilled' ? undefined : (templateData?.backgroundColor || '#FFFFFF');
+  const canvasBackgroundGradient = templateData?.id === 'prefilled' ? { color1: '#BCF2F6', color2: '#FFF100' } : undefined;
 
   // Update challenge progress when canvas changes
   useEffect(() => {
@@ -326,6 +276,8 @@ export default function BuilderPage() {
                 ref={canvasRef}
                 width={800}
                 height={600}
+                backgroundColor={canvasBackgroundColor}
+                backgroundGradient={canvasBackgroundGradient}
                 onObjectAdded={updateChallengeProgress}
                 onObjectRemoved={updateChallengeProgress}
                 onObjectModified={updateChallengeProgress}

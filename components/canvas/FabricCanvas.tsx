@@ -28,6 +28,7 @@ interface FabricCanvasProps {
   width?: number;
   height?: number;
   backgroundColor?: string;
+  backgroundGradient?: { color1: string; color2: string };
   onObjectAdded?: () => void;
   onObjectRemoved?: () => void;
   onObjectModified?: () => void;
@@ -38,6 +39,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     width = 800,
     height = 600,
     backgroundColor = '#FFFFFF',
+    backgroundGradient,
     onObjectAdded,
     onObjectRemoved,
     onObjectModified,
@@ -52,11 +54,35 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
   // Initialize canvas
   useEffect(() => {
     if (canvasRef.current && !fabricRef.current) {
+      console.log('[FabricCanvas] Initializing with background:', { backgroundColor, backgroundGradient });
+
       fabricRef.current = new fabric.Canvas(canvasRef.current, {
         width,
         height,
         backgroundColor,
       });
+
+      // Apply gradient if provided
+      if (backgroundGradient) {
+        console.log('[FabricCanvas] Applying gradient during init:', backgroundGradient);
+        const gradient = new fabric.Gradient({
+          type: 'linear',
+          coords: {
+            x1: 0,
+            y1: 0,
+            x2: width,
+            y2: height,
+          },
+          colorStops: [
+            { offset: 0, color: backgroundGradient.color1 },
+            { offset: 1, color: backgroundGradient.color2 },
+          ],
+        });
+        fabricRef.current.setBackgroundColor(gradient, () => {
+          fabricRef.current?.renderAll();
+          console.log('[FabricCanvas] Gradient applied during init');
+        });
+      }
 
       // Set selection style
       fabric.Object.prototype.set({
@@ -96,7 +122,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
       fabricRef.current?.dispose();
       fabricRef.current = null;
     };
-  }, [width, height, backgroundColor, onObjectAdded, onObjectRemoved, onObjectModified]);
+  }, [width, height, backgroundColor, backgroundGradient, onObjectAdded, onObjectRemoved, onObjectModified]);
 
   // Save state for undo/redo
   const saveState = () => {
