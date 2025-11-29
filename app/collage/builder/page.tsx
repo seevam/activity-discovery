@@ -7,10 +7,24 @@ import { Button } from '@/components/ui/Button';
 import { useCanvas } from '@/hooks/useCanvas';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useChallenges } from '@/hooks/useChallenges';
-import FabricCanvas from '@/components/canvas/FabricCanvas';
+import dynamic from 'next/dynamic';
 import { ToolPanel } from '@/components/canvas/ToolPanel';
 import { ChallengePanel } from '@/components/canvas/ChallengePanel';
 import { BadgeSidebar } from '@/components/canvas/BadgeSidebar';
+
+// Disable static generation for this page to prevent SSR build errors
+export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
+
+// Dynamically import FabricCanvas - SSR must be disabled for fabric.js
+const FabricCanvas = dynamic(() => import('@/components/canvas/FabricCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] flex items-center justify-center border-2 border-gray-300 rounded-lg bg-white">
+      <div className="text-gray-500">Loading canvas...</div>
+    </div>
+  ),
+});
 
 export default function BuilderPage() {
   const router = useRouter();
