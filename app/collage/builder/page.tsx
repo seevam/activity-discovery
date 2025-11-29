@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Button } from '@/components/ui/Button';
@@ -41,25 +41,19 @@ export default function BuilderPage() {
     gradient?: { color1: string; color2: string };
   }>({ color: '#FFFFFF' });
 
-  // Handle canvas ready - force update
-  const handleCanvasReady = () => {
+  // Handle canvas ready - memoized to prevent re-renders
+  const handleCanvasReady = useCallback(() => {
     console.log('[Builder] Canvas ready callback triggered');
     setCanvasReady(true);
-    // Force a check of the ref after a short delay to ensure it's populated
-    setTimeout(() => {
-      console.log('[Builder] Canvas ref after ready:', {
-        hasRef: !!canvasRef.current,
-        methods: canvasRef.current ? Object.keys(canvasRef.current) : []
-      });
-    }, 100);
-  };
+  }, []);
 
   // Handle canvas mount - manually populate ref (workaround for dynamic import ref issue)
-  const handleCanvasMount = (api: any) => {
+  // Memoized to prevent canvas from being disposed and recreated
+  const handleCanvasMount = useCallback((api: any) => {
     console.log('[Builder] Canvas mount callback - manually setting ref');
     (canvasRef as any).current = api;
     setCanvasReady(true);
-  };
+  }, []);
 
   const {
     challenges,

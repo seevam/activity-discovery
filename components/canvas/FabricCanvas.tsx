@@ -136,9 +136,10 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
       fabricRef.current?.dispose();
       fabricRef.current = null;
     };
-    // Only run on mount - background is applied once during initialization
+    // Only run on mount/unmount or when canvas dimensions change
+    // Callbacks are intentionally NOT in dependencies to prevent recreation
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, height, onObjectAdded, onObjectRemoved, onObjectModified, onReady]);
+  }, [width, height]);
 
   // Save state for undo/redo
   const saveState = () => {
