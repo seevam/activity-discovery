@@ -11,10 +11,6 @@ import FabricCanvas from '@/components/canvas/FabricCanvas';
 import { ToolPanel } from '@/components/canvas/ToolPanel';
 import { ChallengePanel } from '@/components/canvas/ChallengePanel';
 import { BadgeSidebar } from '@/components/canvas/BadgeSidebar';
-import confetti from 'canvas-confetti';
-
-// Disable static generation for this page (canvas requires client-side only)
-export const dynamic = 'force-dynamic';
 
 export default function BuilderPage() {
   const router = useRouter();
@@ -152,7 +148,9 @@ export default function BuilderPage() {
     }
   };
 
-  const triggerCelebration = () => {
+  const triggerCelebration = async () => {
+    // Lazy-load confetti to prevent SSR issues
+    const confetti = (await import('canvas-confetti')).default;
     confetti({
       particleCount: 100,
       spread: 70,
