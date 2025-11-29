@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { fabric } from 'fabric';
 
 export interface CanvasRef {
@@ -50,6 +50,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
   const historyRef = useRef<string[]>([]);
   const historyIndex = useRef(-1);
   const isLoadingRef = useRef(false);
+  const [isCanvasReady, setIsCanvasReady] = useState(false);
 
   // Initialize canvas
   useEffect(() => {
@@ -97,6 +98,10 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
       // Save initial state
       saveState();
 
+      // Mark canvas as ready
+      console.log('[FabricCanvas] Canvas ready, setting isCanvasReady to true');
+      setIsCanvasReady(true);
+
       // Listen for changes
       fabricRef.current.on('object:modified', () => {
         saveState();
@@ -119,6 +124,8 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     }
 
     return () => {
+      console.log('[FabricCanvas] Cleanup: disposing canvas');
+      setIsCanvasReady(false);
       fabricRef.current?.dispose();
       fabricRef.current = null;
     };
@@ -382,31 +389,34 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
   };
 
   // Expose methods to parent
-  useImperativeHandle(ref, () => ({
-    canvas: fabricRef.current,
-    addImage,
-    addText,
-    addSticker,
-    deleteSelected,
-    bringToFront,
-    sendToBack,
-    bringForward,
-    sendBackward,
-    undo,
-    redo,
-    clear: () => {
-      fabricRef.current?.clear();
-      fabricRef.current?.setBackgroundColor(backgroundColor, () => {
-        fabricRef.current?.renderAll();
-      });
-    },
-    setBackgroundColor,
-    setBackgroundGradient,
-    toJSON,
-    loadFromJSON,
-    exportPNG,
-    getObjects,
-  }));
+  useImperativeHandle(ref, () => {
+    console.log('[FabricCanvas] useImperativeHandle running, isCanvasReady:', isCanvasReady, 'fabricRef.current:', !!fabricRef.current);
+    return {
+      canvas: fabricRef.current,
+      addImage,
+      addText,
+      addSticker,
+      deleteSelected,
+      bringToFront,
+      sendToBack,
+      bringForward,
+      sendBackward,
+      undo,
+      redo,
+      clear: () => {
+        fabricRef.current?.clear();
+        fabricRef.current?.setBackgroundColor(backgroundColor, () => {
+          fabricRef.current?.renderAll();
+        });
+      },
+      setBackgroundColor,
+      setBackgroundGradient,
+      toJSON,
+      loadFromJSON,
+      exportPNG,
+      getObjects,
+    };
+  }, [isCanvasReady, addImage, addText, addSticker, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, undo, redo, setBackgroundColor, setBackgroundGradient, toJSON, loadFromJSON, exportPNG, getObjects, backgroundColor]);
 
   return (
     <div className="relative">
