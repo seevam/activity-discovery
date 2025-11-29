@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 1. Main collages table
 CREATE TABLE IF NOT EXISTS identity_collages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    student_id UUID NOT NULL,
+    student_id TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     completed_at TIMESTAMP,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS collage_elements (
 CREATE TABLE IF NOT EXISTS badge_unlocks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     collage_id UUID NOT NULL,
-    student_id UUID NOT NULL,
+    student_id TEXT NOT NULL,
     badge_id VARCHAR(50) NOT NULL,
     unlocked_at TIMESTAMP NOT NULL DEFAULT NOW(),
 

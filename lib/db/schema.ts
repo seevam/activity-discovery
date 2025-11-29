@@ -4,7 +4,7 @@ import { sql } from 'drizzle-orm';
 // Main collages table
 export const identityCollages = pgTable('identity_collages', {
   id: uuid('id').primaryKey().defaultRandom(),
-  studentId: uuid('student_id').notNull(),
+  studentId: text('student_id').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   completedAt: timestamp('completed_at'),
@@ -67,7 +67,7 @@ export const collageElements = pgTable('collage_elements', {
 export const badgeUnlocks = pgTable('badge_unlocks', {
   id: uuid('id').primaryKey().defaultRandom(),
   collageId: uuid('collage_id').notNull().references(() => identityCollages.id, { onDelete: 'cascade' }),
-  studentId: uuid('student_id').notNull(),
+  studentId: text('student_id').notNull(),
   badgeId: varchar('badge_id', { length: 50 }).notNull(),
   unlockedAt: timestamp('unlocked_at').defaultNow().notNull(),
 });
