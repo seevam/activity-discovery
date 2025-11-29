@@ -64,11 +64,14 @@ export function ImageSearchTool({ onSelectImage, onClose }: ImageSearchToolProps
           {/* Search Input */}
           <div className="flex gap-2">
             <Input
+              id="image-search-query"
+              name="image-search-query"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search for images... (e.g., 'heart', 'coding', 'nature')"
               className="flex-1"
+              aria-label="Search for images"
             />
             <Button onClick={handleSearch} disabled={loading || !query.trim()}>
               {loading ? 'Searching...' : 'Search'}

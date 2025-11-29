@@ -85,10 +85,12 @@ export function AIGeneratorTool({
         <div className="p-6 space-y-4">
           {/* Prompt Input */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="ai-prompt" className="block text-sm font-semibold text-gray-700 mb-2">
               Describe what you want to create:
             </label>
             <Input
+              id="ai-prompt"
+              name="ai-prompt"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="e.g., 'A colorful heart with wings, simple icon style'"

@@ -78,10 +78,12 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
         <div className="p-6 space-y-4">
           {/* Text Input */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="text-content" className="block text-sm font-semibold text-gray-700 mb-2">
               Enter your text:
             </label>
             <TextArea
+              id="text-content"
+              name="text-content"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Type your text here..."
@@ -91,10 +93,12 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
 
           {/* Font Selector */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="text-font" className="block text-sm font-semibold text-gray-700 mb-2">
               Font:
             </label>
             <select
+              id="text-font"
+              name="text-font"
               value={fontFamily}
               onChange={(e) => setFontFamily(e.target.value)}
               className="input-field w-full"
@@ -109,10 +113,12 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
 
           {/* Size Slider */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="text-size" className="block text-sm font-semibold text-gray-700 mb-2">
               Size: {fontSize}pt
             </label>
             <input
+              id="text-size"
+              name="text-size"
               type="range"
               min="12"
               max="72"
@@ -124,21 +130,26 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
 
           {/* Color Picker */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="text-color-picker" className="block text-sm font-semibold text-gray-700 mb-2">
               Color:
             </label>
             <div className="flex items-center gap-2">
               <input
+                id="text-color-picker"
+                name="text-color-picker"
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 className="w-16 h-10 rounded border-2 border-gray-300 cursor-pointer"
               />
               <Input
+                id="text-color-input"
+                name="text-color-input"
                 type="text"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 className="flex-1"
+                aria-label="Color hex value"
               />
             </div>
           </div>
@@ -151,6 +162,8 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
             <div className="flex flex-wrap gap-2">
               <label className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg cursor-pointer hover:border-blue-primary">
                 <input
+                  id="text-bold"
+                  name="text-bold"
                   type="checkbox"
                   checked={bold}
                   onChange={(e) => setBold(e.target.checked)}
@@ -161,6 +174,8 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
 
               <label className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg cursor-pointer hover:border-blue-primary">
                 <input
+                  id="text-italic"
+                  name="text-italic"
                   type="checkbox"
                   checked={italic}
                   onChange={(e) => setItalic(e.target.checked)}
@@ -171,6 +186,8 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
 
               <label className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg cursor-pointer hover:border-blue-primary">
                 <input
+                  id="text-shadow"
+                  name="text-shadow"
                   type="checkbox"
                   checked={shadow}
                   onChange={(e) => setShadow(e.target.checked)}

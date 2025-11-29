@@ -137,10 +137,12 @@ export default function Session1InputPage() {
           <div className="space-y-4">
             {[0, 1, 2].map((index) => (
               <div key={index}>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor={`theme-${index}`} className="block text-sm font-semibold text-gray-700 mb-2">
                   Theme {index + 1}:
                 </label>
                 <Input
+                  id={`theme-${index}`}
+                  name={`theme-${index}`}
                   value={formData.themes[index]}
                   onChange={(e) => updateTheme(index, e.target.value)}
                   placeholder={
@@ -183,6 +185,8 @@ export default function Session1InputPage() {
                 }}
               >
                 <input
+                  id={`interest-${interest.toLowerCase().replace(/\s+/g, '-')}`}
+                  name={`interest-${interest.toLowerCase().replace(/\s+/g, '-')}`}
                   type="checkbox"
                   checked={formData.interests.includes(interest)}
                   onChange={() => toggleInterest(interest)}
@@ -213,10 +217,13 @@ export default function Session1InputPage() {
 
           <div className="flex gap-2">
             <Input
+              id="custom-interest"
+              name="custom-interest"
               value={customInterest}
               onChange={(e) => setCustomInterest(e.target.value)}
               placeholder="Add more..."
               onKeyPress={(e) => e.key === 'Enter' && addCustomInterest()}
+              aria-label="Add custom interest"
             />
             <Button
               variant="secondary"
@@ -256,6 +263,8 @@ export default function Session1InputPage() {
                 }}
               >
                 <input
+                  id={`career-${cluster.toLowerCase().replace(/[\s,()&]+/g, '-')}`}
+                  name={`career-${cluster.toLowerCase().replace(/[\s,()&]+/g, '-')}`}
                   type="checkbox"
                   checked={formData.careerClusters.includes(cluster)}
                   onChange={() => toggleCareerCluster(cluster)}
