@@ -279,15 +279,25 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
 
   // Background
   const setBackgroundColor = (color: string) => {
-    if (!fabricRef.current) return;
+    console.log('[FabricCanvas] setBackgroundColor called with:', color);
+    if (!fabricRef.current) {
+      console.log('[FabricCanvas] No canvas ref, skipping');
+      return;
+    }
     fabricRef.current.setBackgroundColor(color, () => {
+      console.log('[FabricCanvas] Background color applied, rendering');
       fabricRef.current?.renderAll();
       saveState();
+      console.log('[FabricCanvas] State saved');
     });
   };
 
   const setBackgroundGradient = (color1: string, color2: string) => {
-    if (!fabricRef.current) return;
+    console.log('[FabricCanvas] setBackgroundGradient called with:', color1, color2);
+    if (!fabricRef.current) {
+      console.log('[FabricCanvas] No canvas ref, skipping');
+      return;
+    }
 
     const gradient = new fabric.Gradient({
       type: 'linear',
@@ -304,14 +314,18 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     });
 
     fabricRef.current.setBackgroundColor(gradient, () => {
+      console.log('[FabricCanvas] Background gradient applied, rendering');
       fabricRef.current?.renderAll();
       saveState();
+      console.log('[FabricCanvas] State saved');
     });
   };
 
   // Export
   const toJSON = () => {
-    return fabricRef.current?.toJSON(['id', 'challenge', 'tags', 'source']) || {};
+    const json = fabricRef.current?.toJSON(['id', 'challenge', 'tags', 'source']) || {};
+    console.log('[FabricCanvas] toJSON called, background:', json.background, json.backgroundColor);
+    return json;
   };
 
   const loadFromJSON = async (json: any): Promise<void> => {

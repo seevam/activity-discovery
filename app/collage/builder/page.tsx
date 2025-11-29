@@ -26,6 +26,7 @@ export default function BuilderPage() {
   const [studentId] = useState('demo-student-123'); // TODO: Get from auth
   const [aiCreditsUsed, setAiCreditsUsed] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [templateData, setTemplateData] = useState<any>(null);
 
   const {
     challenges,
@@ -40,6 +41,18 @@ export default function BuilderPage() {
   } = useChallenges(getElementsForChallenge);
 
   const { lastSaved, saving, saveNow } = useAutoSave(canvasRef, collageId);
+
+  // Load template data on mount
+  useEffect(() => {
+    const template = localStorage.getItem('selectedTemplate');
+    if (template) {
+      try {
+        setTemplateData(JSON.parse(template));
+      } catch (error) {
+        console.error('Failed to parse template:', error);
+      }
+    }
+  }, []);
 
   // Initialize collage
   useEffect(() => {
@@ -90,37 +103,41 @@ export default function BuilderPage() {
 
   // Apply template background to canvas
   useEffect(() => {
-    if (!collageId) return;
+    if (!templateData || !canvasRef.current) return;
 
-    const templateData = localStorage.getItem('selectedTemplate');
-    if (!templateData) return;
+    console.log('Applying template background:', templateData);
 
     // Wait for canvas to be fully initialized
     const applyBackground = () => {
       if (!canvasRef.current?.canvas) {
-        // Canvas not ready yet, try again
-        setTimeout(applyBackground, 100);
+        // Canvas not ready yet, try again in 50ms
+        console.log('Canvas not ready, retrying...');
+        setTimeout(applyBackground, 50);
         return;
       }
 
-      try {
-        const template = JSON.parse(templateData);
+      console.log('Canvas ready, applying background...');
 
+      try {
         // Apply background based on template type
-        if (template.id === 'prefilled') {
+        if (templateData.id === 'prefilled') {
           // Apply gradient for prefilled template
+          console.log('Applying gradient background');
           canvasRef.current.setBackgroundGradient('#BCF2F6', '#FFF100');
-        } else if (template.backgroundColor) {
+        } else if (templateData.backgroundColor) {
           // Apply solid color for other templates
-          canvasRef.current.setBackgroundColor(template.backgroundColor);
+          console.log('Applying solid background:', templateData.backgroundColor);
+          canvasRef.current.setBackgroundColor(templateData.backgroundColor);
         }
+        console.log('Background applied successfully');
       } catch (error) {
         console.error('Failed to apply template background:', error);
       }
     };
 
-    applyBackground();
-  }, [collageId]);
+    // Small delay to ensure canvas is mounted
+    setTimeout(applyBackground, 100);
+  }, [templateData, canvasRef.current]);
 
   // Update challenge progress when canvas changes
   useEffect(() => {
