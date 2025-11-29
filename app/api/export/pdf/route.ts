@@ -27,6 +27,9 @@ export async function POST(request: Request) {
 
     const collage = collages[0];
 
+    // Ensure badgesEarned is an array
+    const badgesEarned = Array.isArray(collage.badgesEarned) ? collage.badgesEarned : [];
+
     // Create PDF
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -87,13 +90,13 @@ export async function POST(request: Request) {
 
     doc.text(`Challenges Completed: ${completedChallenges}/5`, 20, yPosition);
     yPosition += 6;
-    doc.text(`Badges Earned: ${collage.badgesEarned?.length || 0}/6`, 20, yPosition);
+    doc.text(`Badges Earned: ${badgesEarned.length}/6`, 20, yPosition);
     yPosition += 6;
     doc.text(`Total Elements Created: ${collage.elementCount || 0}`, 20, yPosition);
     yPosition += 12;
 
     // Badges section
-    if (collage.badgesEarned && collage.badgesEarned.length > 0) {
+    if (badgesEarned.length > 0) {
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.text('Badges Earned', 20, yPosition);
@@ -102,7 +105,7 @@ export async function POST(request: Request) {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
 
-      collage.badgesEarned.forEach((badgeId: string) => {
+      badgesEarned.forEach((badgeId: string) => {
         const badge = BADGES[badgeId];
         if (badge) {
           doc.text(`• ${badge.name}: ${badge.description}`, 25, yPosition);
