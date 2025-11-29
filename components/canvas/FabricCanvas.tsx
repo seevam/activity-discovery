@@ -388,13 +388,15 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     return fabricRef.current?.getObjects() || [];
   };
 
-  // Expose methods to parent - always keep ref updated
+  // Expose methods to parent - use empty deps so functions always access current fabricRef
   useImperativeHandle(
     ref,
     () => {
-      console.log('[FabricCanvas] useImperativeHandle running, isCanvasReady:', isCanvasReady, 'fabricRef.current:', !!fabricRef.current);
+      console.log('[FabricCanvas] useImperativeHandle running, fabricRef.current:', !!fabricRef.current);
       return {
-        canvas: fabricRef.current,
+        get canvas() {
+          return fabricRef.current;
+        },
         addImage,
         addText,
         addSticker,
@@ -419,7 +421,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
         getObjects,
       };
     },
-    [isCanvasReady, addImage, addText, addSticker, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, undo, redo, setBackgroundColor, setBackgroundGradient, toJSON, loadFromJSON, exportPNG, getObjects, backgroundColor]
+    [] // Empty deps - functions capture fabricRef which is always current
   );
 
   // Debug: Log when isCanvasReady changes
