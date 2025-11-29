@@ -18,6 +18,22 @@ const nextConfig = {
     config.externals = [...(config.externals || []), { canvas: 'canvas' }];
     return config;
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            // Note: 'unsafe-eval' is required for Fabric.js canvas library
+            // which uses eval() for some of its rendering operations.
+            // This is a known requirement when using Fabric.js.
+            value: "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'none';",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
