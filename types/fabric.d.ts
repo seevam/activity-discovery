@@ -17,6 +17,7 @@ declare module 'fabric' {
       bringToFront(object: Object): Canvas;
       sendToBack(object: Object): Canvas;
       bringForward(object: Object, intersecting?: boolean): Canvas;
+      sendBackward(object: Object, intersecting?: boolean): Canvas;
       sendBackwards(object: Object, intersecting?: boolean): Canvas;
       requestRenderAll(): void;
       dispose(): void;
