@@ -13,6 +13,8 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import { useChallenges } from '@/hooks/useChallenges';
 import confetti from 'canvas-confetti';
 
+export const dynamic = 'force-dynamic';
+
 export default function BuilderPage() {
   const router = useRouter();
   const { canvasRef, selectedTool, setSelectedTool, addImage, addText, addSticker, getElementsForChallenge, getTotalElements } = useCanvas();
