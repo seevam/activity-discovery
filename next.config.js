@@ -28,7 +28,18 @@ const nextConfig = {
             // Note: 'unsafe-eval' is required for Fabric.js canvas library
             // which uses eval() for some of its rendering operations.
             // This is a known requirement when using Fabric.js.
-            value: "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'none';",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: https: blob:",
+              "connect-src 'self' https:",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+            ].join('; '),
           },
         ],
       },
