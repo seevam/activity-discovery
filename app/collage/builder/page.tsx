@@ -69,14 +69,11 @@ export default function BuilderPage() {
 
   const { lastSaved, saving, saveNow } = useAutoSave(canvasRef, collageId);
 
-  // Debug: Monitor canvasRef changes
+  // Debug: Monitor completedChallenges
   useEffect(() => {
-    console.log('[Builder] canvasRef.current updated:', {
-      hasRef: !!canvasRef.current,
-      canvas: !!canvasRef.current?.canvas,
-      methods: canvasRef.current ? Object.keys(canvasRef.current) : []
-    });
-  }, [canvasRef.current]);
+    console.log('[Builder] completedChallenges updated:', completedChallenges);
+    console.log('[Builder] Should show "All Complete" message?', completedChallenges.length === 5);
+  }, [completedChallenges]);
 
   // Load template data on mount
   useEffect(() => {
@@ -155,20 +152,22 @@ export default function BuilderPage() {
   const handleCheckCompletion = async () => {
     if (!collageId) return;
 
-    const newlyCompleted = checkChallengeCompletion(currentChallenge);
+    console.log('[Builder] handleCheckCompletion called for challenge', currentChallenge);
+    console.log('[Builder] Current completedChallenges:', completedChallenges);
 
-    if (newlyCompleted) {
-      const badge = await markChallengeComplete(currentChallenge, collageId);
+    // Don't call checkChallengeCompletion here - markChallengeComplete will do it
+    const badge = await markChallengeComplete(currentChallenge, collageId);
 
-      if (badge) {
-        // Show celebration
-        triggerCelebration();
+    console.log('[Builder] Badge result:', badge);
 
-        // Show badge unlock notification
-        setTimeout(() => {
-          alert(`🎉 Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
-        }, 1000);
-      }
+    if (badge) {
+      // Show celebration
+      triggerCelebration();
+
+      // Show badge unlock notification
+      setTimeout(() => {
+        alert(`🎉 Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
+      }, 1000);
 
       // Move to next challenge (only for challenges 1-4)
       // Challenge 5 completion shows the "All Challenges Complete" message instead
@@ -176,7 +175,11 @@ export default function BuilderPage() {
         setTimeout(() => {
           nextChallenge();
         }, 2000);
+      } else {
+        console.log('[Builder] Challenge 5 complete - user should see "All Challenges Complete" message');
       }
+    } else {
+      console.log('[Builder] No badge unlocked - challenge may already be complete');
     }
   };
 
