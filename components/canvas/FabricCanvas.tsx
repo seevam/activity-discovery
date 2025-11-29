@@ -388,35 +388,44 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     return fabricRef.current?.getObjects() || [];
   };
 
-  // Expose methods to parent
-  useImperativeHandle(ref, () => {
-    console.log('[FabricCanvas] useImperativeHandle running, isCanvasReady:', isCanvasReady, 'fabricRef.current:', !!fabricRef.current);
-    return {
-      canvas: fabricRef.current,
-      addImage,
-      addText,
-      addSticker,
-      deleteSelected,
-      bringToFront,
-      sendToBack,
-      bringForward,
-      sendBackward,
-      undo,
-      redo,
-      clear: () => {
-        fabricRef.current?.clear();
-        fabricRef.current?.setBackgroundColor(backgroundColor, () => {
-          fabricRef.current?.renderAll();
-        });
-      },
-      setBackgroundColor,
-      setBackgroundGradient,
-      toJSON,
-      loadFromJSON,
-      exportPNG,
-      getObjects,
-    };
-  }, [isCanvasReady, addImage, addText, addSticker, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, undo, redo, setBackgroundColor, setBackgroundGradient, toJSON, loadFromJSON, exportPNG, getObjects, backgroundColor]);
+  // Expose methods to parent - always keep ref updated
+  useImperativeHandle(
+    ref,
+    () => {
+      console.log('[FabricCanvas] useImperativeHandle running, isCanvasReady:', isCanvasReady, 'fabricRef.current:', !!fabricRef.current);
+      return {
+        canvas: fabricRef.current,
+        addImage,
+        addText,
+        addSticker,
+        deleteSelected,
+        bringToFront,
+        sendToBack,
+        bringForward,
+        sendBackward,
+        undo,
+        redo,
+        clear: () => {
+          fabricRef.current?.clear();
+          fabricRef.current?.setBackgroundColor(backgroundColor, () => {
+            fabricRef.current?.renderAll();
+          });
+        },
+        setBackgroundColor,
+        setBackgroundGradient,
+        toJSON,
+        loadFromJSON,
+        exportPNG,
+        getObjects,
+      };
+    },
+    [isCanvasReady, addImage, addText, addSticker, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, undo, redo, setBackgroundColor, setBackgroundGradient, toJSON, loadFromJSON, exportPNG, getObjects, backgroundColor]
+  );
+
+  // Debug: Log when isCanvasReady changes
+  useEffect(() => {
+    console.log('[FabricCanvas] isCanvasReady changed to:', isCanvasReady);
+  }, [isCanvasReady]);
 
   return (
     <div className="relative">

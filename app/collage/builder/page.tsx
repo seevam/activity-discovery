@@ -46,6 +46,15 @@ export default function BuilderPage() {
 
   const { lastSaved, saving, saveNow } = useAutoSave(canvasRef, collageId);
 
+  // Debug: Monitor canvasRef changes
+  useEffect(() => {
+    console.log('[Builder] canvasRef.current updated:', {
+      hasRef: !!canvasRef.current,
+      canvas: !!canvasRef.current?.canvas,
+      methods: canvasRef.current ? Object.keys(canvasRef.current) : []
+    });
+  }, [canvasRef.current]);
+
   // Load template data on mount
   useEffect(() => {
     const template = localStorage.getItem('selectedTemplate');
