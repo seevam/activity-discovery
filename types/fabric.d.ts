@@ -2,6 +2,8 @@ declare module 'fabric' {
   export namespace fabric {
     class Canvas {
       constructor(element: HTMLCanvasElement | string, options?: any);
+      width?: number;
+      height?: number;
       add(...objects: Object[]): Canvas;
       remove(...objects: Object[]): Canvas;
       clear(): Canvas;
