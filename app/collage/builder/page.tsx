@@ -111,16 +111,30 @@ export default function BuilderPage() {
 
     console.log('Applying template background:', templateData);
 
+    let retryCount = 0;
+    const MAX_RETRIES = 40; // 40 * 100ms = 4 seconds max
+
     // Wait for canvas to be fully initialized
     const applyBackground = () => {
+      console.log(`[Retry ${retryCount}] Checking canvas...`, {
+        hasCanvasRef: !!canvasRef.current,
+        hasCanvas: !!canvasRef.current?.canvas,
+        canvasRef: canvasRef.current
+      });
+
       if (!canvasRef.current?.canvas) {
-        // Canvas not ready yet, try again in 50ms
-        console.log('Canvas not ready, retrying...');
-        setTimeout(applyBackground, 50);
+        retryCount++;
+        if (retryCount >= MAX_RETRIES) {
+          console.error('Canvas failed to initialize after', retryCount, 'retries. Giving up.');
+          return;
+        }
+        // Canvas not ready yet, try again in 100ms
+        console.log('Canvas not ready, retrying in 100ms...');
+        setTimeout(applyBackground, 100);
         return;
       }
 
-      console.log('Canvas ready, applying background...');
+      console.log('Canvas ready! Applying background...');
 
       try {
         // Apply background based on template type
@@ -139,8 +153,8 @@ export default function BuilderPage() {
       }
     };
 
-    // Start trying to apply background
-    applyBackground();
+    // Start trying to apply background with a small initial delay
+    setTimeout(applyBackground, 200);
   }, [templateData, collageId]); // Trigger when template loads AND when collage is created
 
   // Update challenge progress when canvas changes
