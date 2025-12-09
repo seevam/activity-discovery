@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { fabric } from 'fabric';
 
 export interface CanvasRef {
@@ -28,9 +28,12 @@ interface FabricCanvasProps {
   width?: number;
   height?: number;
   backgroundColor?: string;
+  backgroundGradient?: { color1: string; color2: string };
   onObjectAdded?: () => void;
   onObjectRemoved?: () => void;
   onObjectModified?: () => void;
+  onReady?: () => void;
+  onMount?: (api: CanvasRef) => void;
 }
 
 const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
@@ -38,9 +41,12 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     width = 800,
     height = 600,
     backgroundColor = '#FFFFFF',
+    backgroundGradient,
     onObjectAdded,
     onObjectRemoved,
     onObjectModified,
+    onReady,
+    onMount,
   } = props;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,15 +54,40 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
   const historyRef = useRef<string[]>([]);
   const historyIndex = useRef(-1);
   const isLoadingRef = useRef(false);
+  const [isCanvasReady, setIsCanvasReady] = useState(false);
 
   // Initialize canvas
   useEffect(() => {
     if (canvasRef.current && !fabricRef.current) {
+      console.log('[FabricCanvas] Initializing with background:', { backgroundColor, backgroundGradient });
+
       fabricRef.current = new fabric.Canvas(canvasRef.current, {
         width,
         height,
         backgroundColor,
       });
+
+      // Apply gradient if provided
+      if (backgroundGradient) {
+        console.log('[FabricCanvas] Applying gradient during init:', backgroundGradient);
+        const gradient = new fabric.Gradient({
+          type: 'linear',
+          coords: {
+            x1: 0,
+            y1: 0,
+            x2: width,
+            y2: height,
+          },
+          colorStops: [
+            { offset: 0, color: backgroundGradient.color1 },
+            { offset: 1, color: backgroundGradient.color2 },
+          ],
+        });
+        fabricRef.current.setBackgroundColor(gradient, () => {
+          fabricRef.current?.renderAll();
+          console.log('[FabricCanvas] Gradient applied during init');
+        });
+      }
 
       // Set selection style
       fabric.Object.prototype.set({
@@ -70,6 +101,13 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
 
       // Save initial state
       saveState();
+
+      // Mark canvas as ready
+      console.log('[FabricCanvas] Canvas ready, setting isCanvasReady to true');
+      setIsCanvasReady(true);
+
+      // Notify parent that canvas is ready
+      onReady?.();
 
       // Listen for changes
       fabricRef.current.on('object:modified', () => {
@@ -93,10 +131,15 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     }
 
     return () => {
+      console.log('[FabricCanvas] Cleanup: disposing canvas');
+      setIsCanvasReady(false);
       fabricRef.current?.dispose();
       fabricRef.current = null;
     };
-  }, [width, height, backgroundColor, onObjectAdded, onObjectRemoved, onObjectModified]);
+    // Only run on mount/unmount or when canvas dimensions change
+    // Callbacks are intentionally NOT in dependencies to prevent recreation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width, height]);
 
   // Save state for undo/redo
   const saveState = () => {
@@ -279,15 +322,25 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
 
   // Background
   const setBackgroundColor = (color: string) => {
-    if (!fabricRef.current) return;
+    console.log('[FabricCanvas] setBackgroundColor called with:', color);
+    if (!fabricRef.current) {
+      console.log('[FabricCanvas] No canvas ref, skipping');
+      return;
+    }
     fabricRef.current.setBackgroundColor(color, () => {
+      console.log('[FabricCanvas] Background color applied, rendering');
       fabricRef.current?.renderAll();
       saveState();
+      console.log('[FabricCanvas] State saved');
     });
   };
 
   const setBackgroundGradient = (color1: string, color2: string) => {
-    if (!fabricRef.current) return;
+    console.log('[FabricCanvas] setBackgroundGradient called with:', color1, color2);
+    if (!fabricRef.current) {
+      console.log('[FabricCanvas] No canvas ref, skipping');
+      return;
+    }
 
     const gradient = new fabric.Gradient({
       type: 'linear',
@@ -304,14 +357,18 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     });
 
     fabricRef.current.setBackgroundColor(gradient, () => {
+      console.log('[FabricCanvas] Background gradient applied, rendering');
       fabricRef.current?.renderAll();
       saveState();
+      console.log('[FabricCanvas] State saved');
     });
   };
 
   // Export
   const toJSON = () => {
-    return fabricRef.current?.toJSON(['id', 'challenge', 'tags', 'source']) || {};
+    const json = fabricRef.current?.toJSON(['id', 'challenge', 'tags', 'source']) || {};
+    console.log('[FabricCanvas] toJSON called, background:', json.background, json.backgroundColor);
+    return json;
   };
 
   const loadFromJSON = async (json: any): Promise<void> => {
@@ -339,9 +396,11 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     return fabricRef.current?.getObjects() || [];
   };
 
-  // Expose methods to parent
-  useImperativeHandle(ref, () => ({
-    canvas: fabricRef.current,
+  // Create canvas API object
+  const canvasAPI: CanvasRef = {
+    get canvas() {
+      return fabricRef.current;
+    },
     addImage,
     addText,
     addSticker,
@@ -364,7 +423,23 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     loadFromJSON,
     exportPNG,
     getObjects,
-  }));
+  };
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => canvasAPI, []);
+
+  // Also call onMount callback with the API (for dynamic imports where ref doesn't work)
+  useEffect(() => {
+    if (fabricRef.current && onMount) {
+      console.log('[FabricCanvas] Calling onMount with canvas API');
+      onMount(canvasAPI);
+    }
+  }, [onMount]);
+
+  // Debug: Log when isCanvasReady changes
+  useEffect(() => {
+    console.log('[FabricCanvas] isCanvasReady changed to:', isCanvasReady);
+  }, [isCanvasReady]);
 
   return (
     <div className="relative">

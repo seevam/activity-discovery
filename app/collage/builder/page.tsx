@@ -1,22 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Button } from '@/components/ui/Button';
 import { useCanvas } from '@/hooks/useCanvas';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useChallenges } from '@/hooks/useChallenges';
+import dynamicImport from 'next/dynamic';
+import { ToolPanel } from '@/components/canvas/ToolPanel';
+import { ChallengePanel } from '@/components/canvas/ChallengePanel';
+import { BadgeSidebar } from '@/components/canvas/BadgeSidebar';
 
-// Dynamically import canvas components with SSR disabled
-const FabricCanvas = dynamic(() => import('@/components/canvas/FabricCanvas'), { ssr: false });
-const ToolPanel = dynamic(() => import('@/components/canvas/ToolPanel').then(mod => ({ default: mod.ToolPanel })), { ssr: false });
-const ChallengePanel = dynamic(() => import('@/components/canvas/ChallengePanel').then(mod => ({ default: mod.ChallengePanel })), { ssr: false });
-const BadgeSidebar = dynamic(() => import('@/components/canvas/BadgeSidebar').then(mod => ({ default: mod.BadgeSidebar })), { ssr: false });
+// Disable static generation for this page to prevent SSR build errors
+export const dynamic = 'force-dynamic';
+export const dynamicParams = false;
 
-// Dynamically import confetti to avoid SSR issues
-const confetti = typeof window !== 'undefined' ? require('canvas-confetti') : null;
+// Dynamically import FabricCanvas - SSR must be disabled for fabric.js
+const FabricCanvas = dynamicImport(() => import('@/components/canvas/FabricCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] flex items-center justify-center border-2 border-gray-300 rounded-lg bg-white">
+      <div className="text-gray-500">Loading canvas...</div>
+    </div>
+  ),
+});
 
 export default function BuilderPage() {
   const router = useRouter();
@@ -26,6 +34,26 @@ export default function BuilderPage() {
   const [studentId] = useState('demo-student-123'); // TODO: Get from auth
   const [aiCreditsUsed, setAiCreditsUsed] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [templateData, setTemplateData] = useState<any>(null);
+  const [canvasBackground, setCanvasBackground] = useState<{
+    color?: string;
+    gradient?: { color1: string; color2: string };
+  }>({ color: '#FFFFFF' });
+
+  // Handle canvas ready - memoized to prevent re-renders
+  const handleCanvasReady = useCallback(() => {
+    console.log('[Builder] Canvas ready callback triggered');
+    setCanvasReady(true);
+  }, []);
+
+  // Handle canvas mount - manually populate ref (workaround for dynamic import ref issue)
+  // Memoized to prevent canvas from being disposed and recreated
+  const handleCanvasMount = useCallback((api: any) => {
+    console.log('[Builder] Canvas mount callback - manually setting ref');
+    (canvasRef as any).current = api;
+    setCanvasReady(true);
+  }, []);
 
   const {
     challenges,
@@ -40,6 +68,33 @@ export default function BuilderPage() {
   } = useChallenges(getElementsForChallenge);
 
   const { lastSaved, saving, saveNow } = useAutoSave(canvasRef, collageId);
+
+  // Debug: Monitor completedChallenges
+  useEffect(() => {
+    console.log('[Builder] completedChallenges updated:', completedChallenges);
+    console.log('[Builder] Should show "All Complete" message?', completedChallenges.length === 5);
+  }, [completedChallenges]);
+
+  // Load template data on mount
+  useEffect(() => {
+    const template = localStorage.getItem('selectedTemplate');
+    if (template) {
+      try {
+        const parsedTemplate = JSON.parse(template);
+        console.log('[Builder] Loaded template:', parsedTemplate);
+        setTemplateData(parsedTemplate);
+
+        // Set canvas background once based on template
+        if (parsedTemplate.id === 'prefilled') {
+          setCanvasBackground({ gradient: { color1: '#BCF2F6', color2: '#FFF100' } });
+        } else {
+          setCanvasBackground({ color: parsedTemplate.backgroundColor || '#FFFFFF' });
+        }
+      } catch (error) {
+        console.error('Failed to parse template:', error);
+      }
+    }
+  }, []);
 
   // Initialize collage
   useEffect(() => {
@@ -97,36 +152,45 @@ export default function BuilderPage() {
   const handleCheckCompletion = async () => {
     if (!collageId) return;
 
-    const newlyCompleted = checkChallengeCompletion(currentChallenge);
+    console.log('[Builder] handleCheckCompletion called for challenge', currentChallenge);
+    console.log('[Builder] Current completedChallenges:', completedChallenges);
 
-    if (newlyCompleted) {
-      const badge = await markChallengeComplete(currentChallenge, collageId);
+    // Don't call checkChallengeCompletion here - markChallengeComplete will do it
+    const badge = await markChallengeComplete(currentChallenge, collageId);
 
-      if (badge) {
-        // Show celebration
-        triggerCelebration();
+    console.log('[Builder] Badge result:', badge);
 
-        // Show badge unlock notification
-        setTimeout(() => {
-          alert(`🎉 Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
-        }, 1000);
-      }
+    if (badge) {
+      // Show celebration
+      triggerCelebration();
 
-      // Move to next challenge
+      // Show badge unlock notification
       setTimeout(() => {
-        nextChallenge();
-      }, 2000);
+        alert(`🎉 Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
+      }, 1000);
+
+      // Move to next challenge (only for challenges 1-4)
+      // Challenge 5 completion shows the "All Challenges Complete" message instead
+      if (currentChallenge < 5) {
+        setTimeout(() => {
+          nextChallenge();
+        }, 2000);
+      } else {
+        console.log('[Builder] Challenge 5 complete - user should see "All Challenges Complete" message');
+      }
+    } else {
+      console.log('[Builder] No badge unlocked - challenge may already be complete');
     }
   };
 
-  const triggerCelebration = () => {
-    if (confetti) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-    }
+  const triggerCelebration = async () => {
+    // Lazy-load confetti to prevent SSR issues
+    const confetti = (await import('canvas-confetti')).default;
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
 
     setShowCelebration(true);
     setTimeout(() => setShowCelebration(false), 3000);
@@ -257,9 +321,13 @@ export default function BuilderPage() {
                 ref={canvasRef}
                 width={800}
                 height={600}
+                backgroundColor={canvasBackground.color}
+                backgroundGradient={canvasBackground.gradient}
                 onObjectAdded={updateChallengeProgress}
                 onObjectRemoved={updateChallengeProgress}
                 onObjectModified={updateChallengeProgress}
+                onReady={handleCanvasReady}
+                onMount={handleCanvasMount}
               />
             </div>
 

@@ -20,6 +20,10 @@ export function useChallenges(getElementsForChallenge: (id: number) => any[]) {
       const elements = getElementsForChallenge(challengeId);
       const challenge = challenges.find((c) => c.id === challengeId);
 
+      console.log('[useChallenges] checkChallengeCompletion for challenge', challengeId);
+      console.log('[useChallenges] Elements:', elements.length, '/', challenge?.requiredElements);
+      console.log('[useChallenges] Already completed?', completedChallenges.includes(challengeId));
+
       if (!challenge) return false;
 
       const isComplete = elements.length >= challenge.requiredElements;
@@ -35,10 +39,12 @@ export function useChallenges(getElementsForChallenge: (id: number) => any[]) {
 
       // If just completed, add to completed list
       if (isComplete && !completedChallenges.includes(challengeId)) {
+        console.log('[useChallenges] Challenge newly completed! Adding to completedChallenges');
         setCompletedChallenges((prev) => [...prev, challengeId]);
         return true; // Newly completed
       }
 
+      console.log('[useChallenges] Not newly completed (isComplete:', isComplete, ')');
       return false;
     },
     [challenges, completedChallenges, getElementsForChallenge]
@@ -96,9 +102,9 @@ export function useChallenges(getElementsForChallenge: (id: number) => any[]) {
   const nextChallenge = useCallback(() => {
     if (currentChallenge < 5) {
       setCurrentChallenge((prev) => prev + 1);
-    } else {
-      setCurrentChallenge(6); // Final challenge (About Me)
     }
+    // Don't increment past challenge 5
+    // The UI will show the "All Challenges Complete" message instead
   }, [currentChallenge]);
 
   // Go to previous challenge
