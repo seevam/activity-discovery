@@ -402,6 +402,7 @@ export default function BuilderPage() {
             currentChallenge={currentChallenge}
             unlockedBadges={unlockedBadges}
             aiCreditsRemaining={10 - aiCreditsUsed}
+            collageId={collageId || undefined}
           />
 
           <BadgeSidebar unlockedBadges={unlockedBadges} />
