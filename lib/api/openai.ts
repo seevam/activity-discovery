@@ -2,12 +2,12 @@ import OpenAI from 'openai';
 import { Session1Input } from '@/types/collage';
 
 if (!process.env.OPENAI_API_KEY) {
-  throw new Error('OPENAI_API_KEY environment variable is required');
+  console.warn('OPENAI_API_KEY environment variable is not set. AI features will not work.');
 }
 
-const openai = new OpenAI({
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+}) : null;
 
 export interface PersonalizationResult {
   challengePrompts: {
@@ -21,6 +21,10 @@ export interface PersonalizationResult {
 export async function generatePersonalization(
   session1Input: Session1Input
 ): Promise<PersonalizationResult> {
+  if (!openai) {
+    throw new Error('OpenAI client not initialized. Please set OPENAI_API_KEY environment variable.');
+  }
+
   const prompt = `Analyze this student's Session 1 career discovery results and generate personalized content:
 
 Student Profile:
@@ -76,6 +80,10 @@ export async function generateAboutMeSuggestions(
     quote?: string;
   }
 ): Promise<AboutMeSuggestion[]> {
+  if (!openai) {
+    throw new Error('OpenAI client not initialized. Please set OPENAI_API_KEY environment variable.');
+  }
+
   const prompt = `Generate 3 different "About Me" statements (50-75 words each) for a middle school student based on their identity collage:
 
 Collage Analysis:
@@ -129,6 +137,10 @@ export async function generateAIImage(
   prompt: string,
   style: 'icon' | 'illustration' | 'abstract' | 'realistic' = 'illustration'
 ): Promise<string> {
+  if (!openai) {
+    throw new Error('OpenAI client not initialized. Please set OPENAI_API_KEY environment variable.');
+  }
+
   const styleModifiers = {
     icon: 'simple icon, flat design, minimalist, clean lines, white background',
     illustration: 'digital illustration, vibrant colors, artistic, detailed, white background',

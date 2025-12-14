@@ -3,7 +3,36 @@ import { db } from '@/lib/db';
 import { identityCollages } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { generatePersonalization } from '@/lib/api/openai';
-import { Session1Input } from '@/types/collage';
+import { Session1Input, QuoteSuggestion } from '@/types/collage';
+
+// Fallback quotes when OpenAI is not available
+const FALLBACK_QUOTES: QuoteSuggestion[] = [
+  {
+    text: "Be yourself; everyone else is already taken.",
+    author: "Oscar Wilde",
+    theme: "Authenticity"
+  },
+  {
+    text: "The only way to do great work is to love what you do.",
+    author: "Steve Jobs",
+    theme: "Passion"
+  },
+  {
+    text: "Believe you can and you're halfway there.",
+    author: "Theodore Roosevelt",
+    theme: "Confidence"
+  },
+  {
+    text: "Dream big and dare to fail.",
+    author: "Norman Vaughan",
+    theme: "Courage"
+  },
+  {
+    text: "Your limitation—it's only your imagination.",
+    author: "Unknown",
+    theme: "Possibility"
+  }
+];
 
 // GET /api/collages/[id]/quotes - Get personalized quote suggestions
 export async function GET(
@@ -37,16 +66,25 @@ export async function GET(
       );
     }
 
-    // Generate personalized content including quotes
-    const personalization = await generatePersonalization(session1Input);
-
-    // Return only the quotes
-    return NextResponse.json({ quotes: personalization.quotes });
+    // Try to generate personalized content including quotes
+    try {
+      const personalization = await generatePersonalization(session1Input);
+      return NextResponse.json({ quotes: personalization.quotes });
+    } catch (aiError) {
+      // If OpenAI fails (API key missing, rate limit, etc), use fallback quotes
+      console.warn('OpenAI quote generation failed, using fallback quotes:', aiError);
+      return NextResponse.json({
+        quotes: FALLBACK_QUOTES,
+        fallback: true
+      });
+    }
   } catch (error) {
     console.error('Error generating quote suggestions:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate quote suggestions' },
-      { status: 500 }
-    );
+
+    // Return fallback quotes even on error
+    return NextResponse.json({
+      quotes: FALLBACK_QUOTES,
+      fallback: true
+    });
   }
 }
