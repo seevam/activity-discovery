@@ -14,8 +14,25 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
-  webpack: (config) => {
-    config.externals = [...(config.externals || []), { canvas: 'canvas' }];
+  webpack: (config, { isServer }) => {
+    // Handle canvas and related modules
+    if (isServer) {
+      config.externals = [
+        ...(config.externals || []),
+        { canvas: 'canvas' },
+      ];
+
+      // Ignore modules that are only needed client-side
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+        jsdom: false,
+        ws: false,
+      };
+    } else {
+      config.externals = [...(config.externals || []), { canvas: 'canvas' }];
+    }
     return config;
   },
   async headers() {

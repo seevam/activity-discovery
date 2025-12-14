@@ -6,9 +6,14 @@ export function useCanvas() {
   const [selectedTool, setSelectedTool] = useState<string>('select');
 
   const addImage = useCallback(async (url: string, challengeId?: number) => {
-    if (!canvasRef.current) return;
+    console.log('[useCanvas] addImage called', { url, challengeId, hasCanvasRef: !!canvasRef.current });
+    if (!canvasRef.current) {
+      console.error('[useCanvas] Cannot add image - canvasRef.current is null');
+      return;
+    }
 
     await canvasRef.current.addImage(url);
+    console.log('[useCanvas] Image added successfully');
 
     // Tag with challenge
     const canvas = canvasRef.current.canvas;
@@ -20,9 +25,14 @@ export function useCanvas() {
   }, []);
 
   const addText = useCallback((text: string, options?: any, challengeId?: number) => {
-    if (!canvasRef.current) return;
+    console.log('[useCanvas] addText called', { text, challengeId, hasCanvasRef: !!canvasRef.current });
+    if (!canvasRef.current) {
+      console.error('[useCanvas] Cannot add text - canvasRef.current is null');
+      return;
+    }
 
     canvasRef.current.addText(text, options);
+    console.log('[useCanvas] Text added successfully');
 
     const canvas = canvasRef.current.canvas;
     const activeObj = canvas?.getActiveObject();
@@ -33,9 +43,14 @@ export function useCanvas() {
   }, []);
 
   const addSticker = useCallback((emoji: string, challengeId?: number) => {
-    if (!canvasRef.current) return;
+    console.log('[useCanvas] addSticker called', { emoji, challengeId, hasCanvasRef: !!canvasRef.current });
+    if (!canvasRef.current) {
+      console.error('[useCanvas] Cannot add sticker - canvasRef.current is null');
+      return;
+    }
 
     canvasRef.current.addSticker(emoji);
+    console.log('[useCanvas] Sticker added successfully');
 
     const canvas = canvasRef.current.canvas;
     const activeObj = canvas?.getActiveObject();

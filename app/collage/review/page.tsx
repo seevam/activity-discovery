@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BadgeGrid } from '@/components/ui/Badge';
 import { BADGES } from '@/lib/constants/badges';
 import { Badge as BadgeType } from '@/types/collage';
-import confetti from 'canvas-confetti';
+import dynamic from 'next/dynamic';
+
+// Dynamically import canvas-confetti to prevent SSR issues
+const confettiLoader = () => import('canvas-confetti');
 
 function ReviewContent() {
   const router = useRouter();
@@ -17,6 +20,8 @@ function ReviewContent() {
   const [collage, setCollage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [canvasImageUrl, setCanvasImageUrl] = useState<string | null>(null);
+  const canvasRef = useRef<any>(null);
 
   useEffect(() => {
     if (!collageId) {
@@ -27,7 +32,8 @@ function ReviewContent() {
     loadCollage();
 
     // Celebration
-    setTimeout(() => {
+    setTimeout(async () => {
+      const confetti = (await confettiLoader()).default;
       confetti({
         particleCount: 200,
         spread: 160,
@@ -42,11 +48,47 @@ function ReviewContent() {
       if (response.ok) {
         const data = await response.json();
         setCollage(data);
+
+        // Load canvas image from canvasJSON if available
+        if (data.canvasJSON) {
+          loadCanvasImage(data.canvasJSON);
+        }
       }
     } catch (error) {
       console.error('Failed to load collage:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCanvasImage = async (canvasJSON: any) => {
+    try {
+      // Dynamically import fabric
+      const { fabric } = await import('fabric');
+
+      // Create an off-screen canvas
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = 800;
+      offscreenCanvas.height = 600;
+
+      const fabricCanvas = new fabric.Canvas(offscreenCanvas);
+
+      // Load from JSON
+      await new Promise<void>((resolve) => {
+        fabricCanvas.loadFromJSON(canvasJSON, () => {
+          fabricCanvas.renderAll();
+          resolve();
+        });
+      });
+
+      // Export as data URL
+      const dataUrl = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+      setCanvasImageUrl(dataUrl);
+
+      // Clean up
+      fabricCanvas.dispose();
+    } catch (error) {
+      console.error('Failed to load canvas image:', error);
     }
   };
 
@@ -59,7 +101,10 @@ function ReviewContent() {
       const response = await fetch(`/api/export/pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ collageId }),
+        body: JSON.stringify({
+          collageId,
+          canvasDataUrl: canvasImageUrl // Pass the canvas image
+        }),
       });
 
       if (response.ok) {
@@ -72,6 +117,10 @@ function ReviewContent() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+      } else {
+        const error = await response.json();
+        console.error('PDF export failed:', error);
+        alert('Failed to download PDF: ' + (error.error || 'Unknown error'));
       }
     } catch (error) {
       console.error('Download failed:', error);
@@ -82,26 +131,19 @@ function ReviewContent() {
   };
 
   const handleDownloadPNG = async () => {
-    if (!collageId) return;
+    if (!canvasImageUrl) {
+      alert('Canvas image is still loading. Please wait a moment.');
+      return;
+    }
 
     try {
-      const response = await fetch(`/api/export/png`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ collageId }),
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Identity_Collage_${collageId}.png`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      // Download directly from the data URL
+      const a = document.createElement('a');
+      a.href = canvasImageUrl;
+      a.download = `Identity_Collage_${collageId}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Download failed:', error);
       alert('Failed to download PNG. Please try again.');
@@ -151,12 +193,12 @@ function ReviewContent() {
         </div>
 
         {/* Collage Preview */}
-        {collage?.pngUrl && (
+        {canvasImageUrl && (
           <Card className="mb-8">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Your Identity Collage:</h3>
             <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
               <img
-                src={collage.pngUrl}
+                src={canvasImageUrl}
                 alt="Your identity collage"
                 className="w-full h-auto"
               />
