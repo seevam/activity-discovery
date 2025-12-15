@@ -7,23 +7,26 @@ export default function HomePage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-ultra-light to-white flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full text-center">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-ultra-light to-white">
+      {/* Hero Image */}
+      <div className="w-full h-64 md:h-80 overflow-hidden relative">
+        <img
+          src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1200&h=400&fit=crop"
+          alt="Students creating and learning together"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-cyan-ultra-light"></div>
+      </div>
+
+      <div className="max-w-2xl w-full mx-auto text-center px-4 -mt-16 relative z-10">
         {/* Logo/Header */}
-        <div className="mb-8">
+        <div className="mb-8 bg-white rounded-2xl p-6 shadow-lg">
           <h1 className="text-4xl md:text-5xl font-extrabold text-blue-primary mb-2">
-            🎨 Identity Collage Builder
+            Identity Collage Builder
           </h1>
           <p className="text-xl text-gray-700">
             Ascend Now Career Exploration Platform
           </p>
-        </div>
-
-        {/* Mascot/Welcome Image */}
-        <div className="mb-8">
-          <div className="w-48 h-48 mx-auto bg-yellow-primary rounded-full flex items-center justify-center text-8xl animate-bounce">
-            🎨
-          </div>
         </div>
 
         {/* Welcome Message */}

@@ -180,7 +180,6 @@ function ReviewContent() {
       <div className="max-w-4xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <div className="text-8xl mb-6 animate-bounce">🎉</div>
           <h1 className="text-5xl font-extrabold text-gray-900 mb-4">
             AMAZING WORK!
           </h1>
