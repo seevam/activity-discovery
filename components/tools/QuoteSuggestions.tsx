@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { QuoteSuggestion } from '@/types/collage';
+import { QuoteLibrary } from './QuoteLibrary';
 
 interface QuoteSuggestionsProps {
   collageId: string;
@@ -15,6 +16,7 @@ export function QuoteSuggestions({ collageId, onSelectQuote, onSkip }: QuoteSugg
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showLibrary, setShowLibrary] = useState(false);
 
   useEffect(() => {
     const fetchQuotes = async () => {
@@ -46,6 +48,16 @@ export function QuoteSuggestions({ collageId, onSelectQuote, onSkip }: QuoteSugg
     setSelectedIndex(index);
     onSelectQuote(quote);
   };
+
+  // If showing library, render the library component instead
+  if (showLibrary) {
+    return (
+      <QuoteLibrary
+        onSelectQuote={onSelectQuote}
+        onBack={() => setShowLibrary(false)}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -122,7 +134,15 @@ export function QuoteSuggestions({ collageId, onSelectQuote, onSkip }: QuoteSugg
         ))}
       </div>
 
-      <div className="pt-2 border-t">
+      <div className="pt-2 border-t space-y-2">
+        <Button
+          onClick={() => setShowLibrary(true)}
+          variant="primary"
+          size="sm"
+          className="w-full"
+        >
+          📚 Browse Quote Library
+        </Button>
         <Button onClick={onSkip} variant="secondary" size="sm" className="w-full">
           Or Write Your Own Quote
         </Button>
