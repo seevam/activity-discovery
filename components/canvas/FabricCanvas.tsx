@@ -250,6 +250,8 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     fabricRef.current.add(textObj);
     fabricRef.current.setActiveObject(textObj);
     fabricRef.current.renderAll();
+
+    console.log('[FabricCanvas] Text added:', { text, objectCount: fabricRef.current.getObjects().length });
   };
 
   // Add sticker (emoji)
@@ -367,7 +369,11 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
   // Export
   const toJSON = () => {
     const json = fabricRef.current?.toJSON(['id', 'challenge', 'tags', 'source']) || {};
-    console.log('[FabricCanvas] toJSON called, background:', json.background, json.backgroundColor);
+    console.log('[FabricCanvas] toJSON called, objects:', json.objects?.length, 'background:', json.background, json.backgroundColor);
+    // Log first few objects for debugging
+    if (json.objects && json.objects.length > 0) {
+      console.log('[FabricCanvas] First object:', json.objects[0]);
+    }
     return json;
   };
 

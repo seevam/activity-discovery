@@ -155,6 +155,12 @@ export default function BuilderPage() {
     console.log('[Builder] handleCheckCompletion called for challenge', currentChallenge);
     console.log('[Builder] Current completedChallenges:', completedChallenges);
 
+    // IMPORTANT: Save canvas before marking challenge complete
+    // This ensures all elements (including text/quotes) are saved immediately
+    console.log('[Builder] Saving canvas before marking challenge complete...');
+    await saveNow();
+    console.log('[Builder] Canvas saved');
+
     // Don't call checkChallengeCompletion here - markChallengeComplete will do it
     const badge = await markChallengeComplete(currentChallenge, collageId);
 

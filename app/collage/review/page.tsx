@@ -47,11 +47,18 @@ function ReviewContent() {
       const response = await fetch(`/api/collages/${collageId}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('[Review] Collage data loaded:', {
+          hasCanvasJSON: !!data.canvasJSON,
+          elementCount: data.elementCount,
+          canvasObjectsCount: data.canvasJSON?.objects?.length
+        });
         setCollage(data);
 
         // Load canvas image from canvasJSON if available
         if (data.canvasJSON) {
           loadCanvasImage(data.canvasJSON);
+        } else {
+          console.warn('[Review] No canvasJSON found in collage data!');
         }
       }
     } catch (error) {
@@ -63,6 +70,11 @@ function ReviewContent() {
 
   const loadCanvasImage = async (canvasJSON: any) => {
     try {
+      console.log('[Review] Loading canvas from JSON, objects count:', canvasJSON?.objects?.length);
+      if (canvasJSON?.objects && canvasJSON.objects.length > 0) {
+        console.log('[Review] First object:', canvasJSON.objects[0]);
+      }
+
       // Dynamically import fabric
       const { fabric } = await import('fabric');
 
@@ -76,6 +88,7 @@ function ReviewContent() {
       // Load from JSON
       await new Promise<void>((resolve) => {
         fabricCanvas.loadFromJSON(canvasJSON, () => {
+          console.log('[Review] Canvas loaded, object count:', fabricCanvas.getObjects().length);
           fabricCanvas.renderAll();
           resolve();
         });
