@@ -16,6 +16,7 @@ interface ToolPanelProps {
   currentChallenge: number;
   unlockedBadges: string[];
   aiCreditsRemaining: number;
+  collageId?: string;
 }
 
 export function ToolPanel({
@@ -27,6 +28,7 @@ export function ToolPanel({
   currentChallenge,
   unlockedBadges,
   aiCreditsRemaining,
+  collageId,
 }: ToolPanelProps) {
   const [showImageSearch, setShowImageSearch] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
@@ -127,6 +129,8 @@ export function ToolPanel({
             setShowTextTool(false);
           }}
           onClose={() => setShowTextTool(false)}
+          collageId={collageId}
+          currentChallenge={currentChallenge}
         />
       )}
     </div>

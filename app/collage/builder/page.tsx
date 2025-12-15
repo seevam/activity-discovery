@@ -166,7 +166,7 @@ export default function BuilderPage() {
 
       // Show badge unlock notification
       setTimeout(() => {
-        alert(`🎉 Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
+        alert(`Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
       }, 1000);
 
       // Move to next challenge (only for challenges 1-4)
@@ -378,7 +378,7 @@ export default function BuilderPage() {
             {completedChallenges.length === 5 && (
               <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-success rounded-2xl p-6 text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  🎉 All Challenges Complete!
+                  All Challenges Complete!
                 </h3>
                 <p className="text-gray-700 mb-4">
                   Amazing work! Now let's add your "About Me" statement to complete your collage.
@@ -402,6 +402,7 @@ export default function BuilderPage() {
             currentChallenge={currentChallenge}
             unlockedBadges={unlockedBadges}
             aiCreditsRemaining={10 - aiCreditsUsed}
+            collageId={collageId || undefined}
           />
 
           <BadgeSidebar unlockedBadges={unlockedBadges} />
@@ -411,7 +412,7 @@ export default function BuilderPage() {
       {/* Celebration Overlay */}
       {showCelebration && (
         <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-50">
-          <div className="text-8xl animate-bounce">🎉</div>
+          <div className="text-8xl animate-bounce">✨</div>
         </div>
       )}
     </div>

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Input, TextArea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { QuoteSuggestions } from './QuoteSuggestions';
+import { QuoteSuggestion } from '@/types/collage';
 
 const CANVAS_FONTS = [
   { name: 'Handwriting Script', family: 'Pacifico' },
@@ -17,9 +19,14 @@ const CANVAS_FONTS = [
 interface TextToolProps {
   onAddText: (text: string, options: any) => void;
   onClose: () => void;
+  collageId?: string;
+  currentChallenge?: number;
 }
 
-export function TextTool({ onAddText, onClose }: TextToolProps) {
+export function TextTool({ onAddText, onClose, collageId, currentChallenge }: TextToolProps) {
+  const [showQuoteSuggestions, setShowQuoteSuggestions] = useState(
+    currentChallenge === 3 && collageId
+  );
   const [text, setText] = useState('');
   const [fontFamily, setFontFamily] = useState('Nunito');
   const [fontSize, setFontSize] = useState(24);
@@ -27,6 +34,13 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
   const [bold, setBold] = useState(false);
   const [italic, setItalic] = useState(false);
   const [shadow, setShadow] = useState(false);
+
+  const handleSelectQuote = (quote: QuoteSuggestion) => {
+    // Pre-fill the text with the selected quote
+    setText(`"${quote.text}"\n— ${quote.author}`);
+    // Switch to manual editing mode
+    setShowQuoteSuggestions(false);
+  };
 
   const handleAddText = () => {
     if (!text.trim()) return;
@@ -64,7 +78,9 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
         {/* Header */}
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">✏️ Add Text</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {currentChallenge === 3 && showQuoteSuggestions ? '💬 Choose Your Quote' : '✏️ Add Text'}
+            </h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -76,6 +92,15 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
 
         {/* Content */}
         <div className="p-6 space-y-4">
+          {/* Show Quote Suggestions for Challenge 3 */}
+          {currentChallenge === 3 && showQuoteSuggestions && collageId ? (
+            <QuoteSuggestions
+              collageId={collageId}
+              onSelectQuote={handleSelectQuote}
+              onSkip={() => setShowQuoteSuggestions(false)}
+            />
+          ) : (
+            <>
           {/* Text Input */}
           <div>
             <label htmlFor="text-content" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -237,6 +262,8 @@ export function TextTool({ onAddText, onClose }: TextToolProps) {
               Cancel
             </Button>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>
