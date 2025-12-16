@@ -69,27 +69,39 @@ export default function BuilderPage() {
 
   const { lastSaved, saving, saveNow } = useAutoSave(canvasRef, collageId);
 
-  // Save canvas when component unmounts (user navigates away)
+  // Save canvas when component unmounts (user navigates away) - safety net only
   useEffect(() => {
     return () => {
-      console.log('[Builder] Component unmounting - saving canvas...');
+      console.log('[Builder] Component unmounting - attempting safety save...');
       if (canvasRef.current && collageId) {
-        // Use synchronous navigator.sendBeacon or fetch with keepalive for unmount
         const canvasJSON = canvasRef.current.toJSON();
         const objectCount = canvasRef.current.getObjects().length;
 
         console.log('[Builder] Unmount save - objects:', objectCount);
 
-        // Use fetch with keepalive to ensure request completes even after unmount
-        fetch(`/api/collages/${collageId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            canvasJSON,
-            elementCount: objectCount,
-          }),
-          keepalive: true,
-        }).catch(err => console.error('[Builder] Unmount save failed:', err));
+        // Try sendBeacon first (most reliable for unmount), fallback to fetch with keepalive
+        const data = JSON.stringify({
+          canvasJSON,
+          elementCount: objectCount,
+        });
+
+        // Try navigator.sendBeacon if available (more reliable for page unload)
+        const beaconSent = navigator.sendBeacon
+          ? navigator.sendBeacon(`/api/collages/${collageId}`, new Blob([data], { type: 'application/json' }))
+          : false;
+
+        if (beaconSent) {
+          console.log('[Builder] Unmount save sent via sendBeacon');
+        } else {
+          // Fallback to fetch with keepalive
+          console.log('[Builder] Unmount save using fetch with keepalive');
+          fetch(`/api/collages/${collageId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: data,
+            keepalive: true,
+          }).catch(err => console.error('[Builder] Unmount save failed:', err));
+        }
       }
     };
   }, [collageId]);
@@ -230,8 +242,15 @@ export default function BuilderPage() {
   const handleFinish = async () => {
     if (!collageId) return;
 
-    // Save one last time
+    console.log('[Builder] handleFinish - saving canvas before navigation...');
+
+    // Save and WAIT for it to complete
     await saveNow();
+
+    // Add a small delay to ensure the save request completes
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    console.log('[Builder] Save complete, navigating to About Me page');
 
     // Navigate to About Me page
     router.push(`/collage/about-me?id=${collageId}`);

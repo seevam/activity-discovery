@@ -96,8 +96,8 @@ function ReviewContent() {
 
       const fabricCanvas = new fabric.Canvas(offscreenCanvas);
 
-      // Load from JSON with error handling (background will be loaded automatically)
-      await new Promise<void>((resolve, reject) => {
+      // Load from JSON (background will be loaded automatically)
+      await new Promise<void>((resolve) => {
         fabricCanvas.loadFromJSON(canvasJSON, () => {
           console.log('[Review] Background after load:', (fabricCanvas as any).backgroundColor);
           const loadedObjects = fabricCanvas.getObjects();
@@ -116,16 +116,6 @@ function ReviewContent() {
 
           // Small delay to ensure rendering completes
           setTimeout(() => resolve(), 100);
-        }, (objectData: any, err: any) => {
-          // Log detailed error information
-          console.error('[Review] Error loading object from JSON:', {
-            objectType: objectData?.type,
-            objectText: objectData?.type === 'text' ? objectData?.text : undefined,
-            errorMessage: err?.message || err,
-            errorStack: err?.stack,
-            fullError: err
-          });
-          // Don't reject - Fabric.js will skip the problematic object and continue
         });
       });
 
