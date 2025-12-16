@@ -26,6 +26,7 @@ export function AIGeneratorTool({
   const handleGenerate = async () => {
     if (!prompt.trim() || creditsRemaining <= 0) return;
 
+    console.log('[AIGeneratorTool] Generating image with prompt:', prompt, 'style:', style);
     setGenerating(true);
     setError(null);
     setGeneratedImage(null);
@@ -37,16 +38,21 @@ export function AIGeneratorTool({
         body: JSON.stringify({ prompt, style }),
       });
 
+      console.log('[AIGeneratorTool] API response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('[AIGeneratorTool] Generation failed:', errorData);
         throw new Error(errorData.error || 'Generation failed');
       }
 
       const data = await response.json();
+      console.log('[AIGeneratorTool] Image generated successfully:', data.url);
       setGeneratedImage(data.url);
     } catch (err: any) {
-      setError(err.message || 'Failed to generate image. Please try again.');
-      console.error(err);
+      const errorMessage = err.message || 'Failed to generate image. Please try again.';
+      console.error('[AIGeneratorTool] Error:', errorMessage, err);
+      setError(errorMessage);
     } finally {
       setGenerating(false);
     }
@@ -54,6 +60,7 @@ export function AIGeneratorTool({
 
   const handleAddToCanvas = () => {
     if (generatedImage) {
+      console.log('[AIGeneratorTool] Adding image to canvas:', generatedImage);
       onImageGenerated(generatedImage);
       onClose();
     }
