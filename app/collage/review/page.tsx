@@ -96,15 +96,10 @@ function ReviewContent() {
 
       const fabricCanvas = new fabric.Canvas(offscreenCanvas);
 
-      // Set background if present
-      if (canvasJSON.background || canvasJSON.backgroundColor) {
-        console.log('[Review] Setting background:', canvasJSON.background || canvasJSON.backgroundColor);
-        fabricCanvas.backgroundColor = canvasJSON.background || canvasJSON.backgroundColor;
-      }
-
-      // Load from JSON with error handling
+      // Load from JSON with error handling (background will be loaded automatically)
       await new Promise<void>((resolve, reject) => {
         fabricCanvas.loadFromJSON(canvasJSON, () => {
+          console.log('[Review] Background after load:', (fabricCanvas as any).backgroundColor);
           const loadedObjects = fabricCanvas.getObjects();
           console.log('[Review] Canvas loaded successfully!');
           console.log('[Review] Loaded object count:', loadedObjects.length);
