@@ -9,18 +9,37 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('[API] GET /api/collages/[id] - Fetching collage:', params.id);
+
     const collages = await db
       .select()
       .from(identityCollages)
       .where(eq(identityCollages.id, params.id));
 
     if (collages.length === 0) {
+      console.error('[API] Collage not found:', params.id);
       return NextResponse.json({ error: 'Collage not found' }, { status: 404 });
     }
 
-    return NextResponse.json(collages[0]);
+    const collage = collages[0];
+    const canvasJSON = collage.canvasJSON as any;
+    console.log('[API] Collage retrieved:', {
+      id: collage.id,
+      hasCanvasJSON: !!canvasJSON,
+      objectCount: canvasJSON?.objects?.length || 0,
+      elementCount: collage.elementCount
+    });
+
+    if (canvasJSON?.objects) {
+      console.log('[API] Canvas objects retrieved:', canvasJSON.objects.map((o: any) => ({
+        type: o.type,
+        text: o.type === 'text' ? o.text?.substring(0, 30) : undefined
+      })));
+    }
+
+    return NextResponse.json(collage);
   } catch (error) {
-    console.error('Error fetching collage:', error);
+    console.error('[API] Error fetching collage:', error);
     return NextResponse.json(
       { error: 'Failed to fetch collage' },
       { status: 500 }
@@ -28,14 +47,26 @@ export async function GET(
   }
 }
 
-// PUT /api/collages/[id] - Update collage (auto-save)
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// Shared update logic for both PUT and POST (for sendBeacon compatibility)
+async function updateCollage(request: Request, collageId: string) {
   try {
     const body = await request.json();
     const { canvasJSON, elementCount, aboutMe, ...otherUpdates } = body;
+
+    console.log('[API] Updating collage:', collageId);
+    console.log('[API] Canvas data:', {
+      hasCanvasJSON: !!canvasJSON,
+      objectCount: canvasJSON?.objects?.length || 0,
+      elementCount,
+      hasAboutMe: !!aboutMe
+    });
+
+    if (canvasJSON?.objects) {
+      console.log('[API] Canvas objects being saved:', canvasJSON.objects.map((o: any) => ({
+        type: o.type,
+        text: o.type === 'text' ? o.text?.substring(0, 30) : undefined
+      })));
+    }
 
     const updateData: any = {
       updatedAt: new Date(),
@@ -57,19 +88,38 @@ export async function PUT(
     const updated = await db
       .update(identityCollages)
       .set(updateData)
-      .where(eq(identityCollages.id, params.id))
+      .where(eq(identityCollages.id, collageId))
       .returning();
 
     if (updated.length === 0) {
+      console.error('[API] Collage not found:', collageId);
       return NextResponse.json({ error: 'Collage not found' }, { status: 404 });
     }
 
+    const updatedCanvasJSON = updated[0].canvasJSON as any;
+    console.log('[API] Collage updated successfully, objects saved:', updatedCanvasJSON?.objects?.length || 0);
     return NextResponse.json(updated[0]);
   } catch (error) {
-    console.error('Error updating collage:', error);
+    console.error('[API] Error updating collage:', error);
     return NextResponse.json(
       { error: 'Failed to update collage' },
       { status: 500 }
     );
   }
+}
+
+// PUT /api/collages/[id] - Update collage (auto-save)
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  return updateCollage(request, params.id);
+}
+
+// POST /api/collages/[id] - Update collage (for sendBeacon compatibility)
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  return updateCollage(request, params.id);
 }

@@ -23,18 +23,28 @@ export function useAutoSave(canvasRef: React.RefObject<CanvasRef>, collageId: st
       setError(null);
 
       try {
+        const canvasJSON = canvasRef.current.toJSON();
+        const objectCount = canvasRef.current.getObjects().length;
+
+        console.log('[AutoSave] Saving canvas:', {
+          objectCount,
+          hasObjects: canvasJSON?.objects?.length,
+          firstObject: canvasJSON?.objects?.[0]?.type
+        });
+
         const response = await fetch(`/api/collages/${collageId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            canvasJSON: canvasRef.current.toJSON(),
-            elementCount: canvasRef.current.getObjects().length,
+            canvasJSON,
+            elementCount: objectCount,
           }),
         });
 
         if (response.ok) {
           lastStateRef.current = currentState;
           setLastSaved(new Date());
+          console.log('[AutoSave] Successfully saved canvas with', objectCount, 'objects');
         } else {
           throw new Error('Save failed');
         }
@@ -54,24 +64,37 @@ export function useAutoSave(canvasRef: React.RefObject<CanvasRef>, collageId: st
 
   // Manual save function
   const saveNow = async () => {
-    if (!collageId || !canvasRef.current) return;
+    if (!collageId || !canvasRef.current) {
+      console.log('[AutoSave] saveNow skipped - missing collageId or canvasRef');
+      return;
+    }
 
     setSaving(true);
     setError(null);
 
     try {
+      const canvasJSON = canvasRef.current.toJSON();
+      const objectCount = canvasRef.current.getObjects().length;
+
+      console.log('[AutoSave] Manual save - canvas:', {
+        objectCount,
+        hasObjects: canvasJSON?.objects?.length,
+        firstObject: canvasJSON?.objects?.[0]?.type
+      });
+
       const response = await fetch(`/api/collages/${collageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          canvasJSON: canvasRef.current.toJSON(),
-          elementCount: canvasRef.current.getObjects().length,
+          canvasJSON,
+          elementCount: objectCount,
         }),
       });
 
       if (response.ok) {
-        lastStateRef.current = JSON.stringify(canvasRef.current.toJSON());
+        lastStateRef.current = JSON.stringify(canvasJSON);
         setLastSaved(new Date());
+        console.log('[AutoSave] Manual save successful -', objectCount, 'objects saved');
       } else {
         throw new Error('Save failed');
       }

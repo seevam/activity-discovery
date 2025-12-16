@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     // Ensure badgesEarned is an array
     const badgesEarned = Array.isArray(collage.badgesEarned) ? collage.badgesEarned : [];
 
-    // Create PDF
+    // Create PDF with modern styling
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -42,84 +42,90 @@ export async function POST(request: Request) {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
     let yPosition = 0;
 
-    // Helper function to draw rounded rectangle
-    const drawRoundedRect = (x: number, y: number, width: number, height: number, radius: number, fillColor: string) => {
-      doc.setFillColor(fillColor);
-      doc.roundedRect(x, y, width, height, radius, radius, 'F');
-    };
+    // ===========================
+    // MODERN HEADER WITH GRADIENT
+    // ===========================
+    const headerHeight = 60;
 
-    // Header with gradient-like effect (using multiple colored rectangles)
-    const headerHeight = 50;
-    doc.setFillColor('#006BFF'); // Blue primary
-    doc.rect(0, 0, pageWidth, headerHeight, 'F');
+    // Gradient effect using multiple rectangles
+    const gradientSteps = 20;
+    for (let i = 0; i < gradientSteps; i++) {
+      const ratio = i / gradientSteps;
+      const r = Math.round(0 + (74 - 0) * ratio); // 0 -> 74
+      const g = Math.round(107 + (158 - 107) * ratio); // 107 -> 158
+      const b = Math.round(255 + (255 - 255) * ratio); // 255 -> 255
+      doc.setFillColor(r, g, b);
+      doc.rect(0, i * (headerHeight / gradientSteps), pageWidth, headerHeight / gradientSteps, 'F');
+    }
 
-    // Add semi-transparent overlay for gradient effect
-    doc.setFillColor('#4A9EFF');
-    doc.setGState(new (doc.GState as any)({ opacity: 0.5 }));
-    doc.rect(0, 0, pageWidth, headerHeight / 2, 'F');
-    
-    doc.setGState(new (doc.GState as any)({ opacity: 0.5 })); // Reset opacity
-
-    // Title in header
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(32);
+    // Title in header with proper font
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(36);
     doc.setFont('helvetica', 'bold');
-    yPosition = 25;
-    doc.text('My Identity Collage', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition = 28;
+    doc.text('MY IDENTITY COLLAGE', pageWidth / 2, yPosition, { align: 'center' });
 
     // Subtitle
-    doc.setFontSize(12);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    yPosition += 8;
+    yPosition += 10;
     doc.text('A Visual Story of Who I Am', pageWidth / 2, yPosition, { align: 'center' });
 
-    yPosition = headerHeight + 15;
-    doc.setTextColor(0, 0, 0); // Reset to black
+    // Decorative line under header
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    const lineMargin = 40;
+    doc.line(lineMargin, yPosition + 8, pageWidth - lineMargin, yPosition + 8);
 
-    // Add collage image if available
+    yPosition = headerHeight + 20;
+
+    // ===========================
+    // COLLAGE IMAGE WITH MODERN FRAME
+    // ===========================
     if (imageUrl) {
       try {
-        // Add decorative border around image
-        const imgWidth = 170;
+        const imgWidth = 160;
         const imgHeight = 120;
-        const xPosition = (pageWidth - imgWidth) / 2;
+        const imgX = (pageWidth - imgWidth) / 2;
 
-        // Shadow effect
-        doc.setFillColor('#E0E0E0');
-        doc.roundedRect(xPosition + 2, yPosition + 2, imgWidth, imgHeight, 3, 3, 'F');
+        // Modern shadow effect
+        doc.setFillColor(200, 200, 200);
+        doc.setGState(new (doc.GState as any)({ opacity: 0.3 }));
+        doc.roundedRect(imgX + 3, yPosition + 3, imgWidth, imgHeight, 5, 5, 'F');
+        doc.setGState(new (doc.GState as any)({ opacity: 1.0 })); // Reset opacity
 
-        // White border
-        doc.setFillColor('#FFFFFF');
-        doc.roundedRect(xPosition, yPosition, imgWidth, imgHeight, 3, 3, 'F');
+        // White background frame
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(imgX, yPosition, imgWidth, imgHeight, 5, 5, 'F');
 
-        // Add image
-        doc.addImage(imageUrl, 'PNG', xPosition + 3, yPosition + 3, imgWidth - 6, imgHeight - 6);
+        // Add the collage image
+        doc.addImage(imageUrl, 'PNG', imgX + 5, yPosition + 5, imgWidth - 10, imgHeight - 10);
 
-        // Border outline
-        doc.setDrawColor('#006BFF');
-        doc.setLineWidth(0.5);
-        doc.roundedRect(xPosition, yPosition, imgWidth, imgHeight, 3, 3, 'S');
+        // Modern blue border
+        doc.setDrawColor(0, 107, 255);
+        doc.setLineWidth(1);
+        doc.roundedRect(imgX, yPosition, imgWidth, imgHeight, 5, 5, 'S');
 
-        yPosition += imgHeight + 15;
+        yPosition += imgHeight + 20;
       } catch (error) {
         console.error('Failed to add image to PDF:', error);
-        doc.setFontSize(10);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'italic');
         doc.setTextColor(150, 150, 150);
-        doc.text('(Collage image not available)', pageWidth / 2, yPosition, { align: 'center' });
-        yPosition += 10;
-        doc.setTextColor(0, 0, 0);
+        doc.text('(Collage image unavailable)', pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 15;
       }
     }
 
-    // Check if we need a new page
-    if (yPosition > pageHeight - 60) {
-      doc.addPage();
-      yPosition = 20;
-    }
+    // Reset text color
+    doc.setTextColor(0, 0, 0);
 
-    // Stats section with colored cards
+    // ===========================
+    // ACHIEVEMENT STATS - Modern Cards
+    // ===========================
     const completedChallenges = [
       collage.challenge1Complete,
       collage.challenge2Complete,
@@ -128,177 +134,210 @@ export async function POST(request: Request) {
       collage.challenge5Complete,
     ].filter(Boolean).length;
 
-    const statBoxWidth = 55;
-    const statBoxHeight = 25;
-    const statBoxGap = 5;
+    const statBoxWidth = 56;
+    const statBoxHeight = 32;
+    const statBoxGap = 6;
     const totalStatsWidth = (statBoxWidth * 3) + (statBoxGap * 2);
     const statBoxX = (pageWidth - totalStatsWidth) / 2;
 
-    // Stat box 1: Challenges
-    doc.setFillColor('#E3F2FD'); // Light blue
-    doc.roundedRect(statBoxX, yPosition, statBoxWidth, statBoxHeight, 2, 2, 'F');
-    doc.setDrawColor('#006BFF');
-    doc.setLineWidth(0.3);
-    doc.roundedRect(statBoxX, yPosition, statBoxWidth, statBoxHeight, 2, 2, 'S');
+    // Stat Card 1: Challenges Completed
+    doc.setFillColor(227, 242, 253); // Light blue background
+    doc.roundedRect(statBoxX, yPosition, statBoxWidth, statBoxHeight, 4, 4, 'F');
+    doc.setDrawColor(0, 107, 255);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(statBoxX, yPosition, statBoxWidth, statBoxHeight, 4, 4, 'S');
 
-    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor('#006BFF');
-    doc.text(`${completedChallenges}/5`, statBoxX + statBoxWidth / 2, yPosition + 12, { align: 'center' });
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.text('Challenges', statBoxX + statBoxWidth / 2, yPosition + 18, { align: 'center' });
+    doc.setFontSize(24);
+    doc.setTextColor(0, 107, 255);
+    doc.text(`${completedChallenges}/5`, statBoxX + statBoxWidth / 2, yPosition + 14, { align: 'center' });
 
-    // Stat box 2: Badges
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    doc.text('Challenges', statBoxX + statBoxWidth / 2, yPosition + 21, { align: 'center' });
+    doc.text('Completed', statBoxX + statBoxWidth / 2, yPosition + 27, { align: 'center' });
+
+    // Stat Card 2: Badges Earned
     const badge2X = statBoxX + statBoxWidth + statBoxGap;
-    doc.setFillColor('#F3E5F5'); // Light purple
-    doc.roundedRect(badge2X, yPosition, statBoxWidth, statBoxHeight, 2, 2, 'F');
-    doc.setDrawColor('#9C27B0');
-    doc.roundedRect(badge2X, yPosition, statBoxWidth, statBoxHeight, 2, 2, 'S');
+    doc.setFillColor(243, 229, 245); // Light purple background
+    doc.roundedRect(badge2X, yPosition, statBoxWidth, statBoxHeight, 4, 4, 'F');
+    doc.setDrawColor(156, 39, 176);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(badge2X, yPosition, statBoxWidth, statBoxHeight, 4, 4, 'S');
 
-    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor('#9C27B0');
-    doc.text(`${badgesEarned.length}/6`, badge2X + statBoxWidth / 2, yPosition + 12, { align: 'center' });
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.text('Badges Earned', badge2X + statBoxWidth / 2, yPosition + 18, { align: 'center' });
+    doc.setFontSize(24);
+    doc.setTextColor(156, 39, 176);
+    doc.text(`${badgesEarned.length}/6`, badge2X + statBoxWidth / 2, yPosition + 14, { align: 'center' });
 
-    // Stat box 3: Elements
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    doc.text('Badges', badge2X + statBoxWidth / 2, yPosition + 21, { align: 'center' });
+    doc.text('Earned', badge2X + statBoxWidth / 2, yPosition + 27, { align: 'center' });
+
+    // Stat Card 3: Elements Created
     const badge3X = badge2X + statBoxWidth + statBoxGap;
-    doc.setFillColor('#E8F5E9'); // Light green
-    doc.roundedRect(badge3X, yPosition, statBoxWidth, statBoxHeight, 2, 2, 'F');
-    doc.setDrawColor('#4CAF50');
-    doc.roundedRect(badge3X, yPosition, statBoxWidth, statBoxHeight, 2, 2, 'S');
+    doc.setFillColor(232, 245, 233); // Light green background
+    doc.roundedRect(badge3X, yPosition, statBoxWidth, statBoxHeight, 4, 4, 'F');
+    doc.setDrawColor(76, 175, 80);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(badge3X, yPosition, statBoxWidth, statBoxHeight, 4, 4, 'S');
 
-    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor('#4CAF50');
-    doc.text(`${collage.elementCount || 0}`, badge3X + statBoxWidth / 2, yPosition + 12, { align: 'center' });
-    doc.setFontSize(8);
+    doc.setFontSize(24);
+    doc.setTextColor(76, 175, 80);
+    doc.text(`${collage.elementCount || 0}`, badge3X + statBoxWidth / 2, yPosition + 14, { align: 'center' });
+
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.text('Elements Created', badge3X + statBoxWidth / 2, yPosition + 18, { align: 'center' });
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    doc.text('Elements', badge3X + statBoxWidth / 2, yPosition + 21, { align: 'center' });
+    doc.text('Created', badge3X + statBoxWidth / 2, yPosition + 27, { align: 'center' });
 
-    yPosition += statBoxHeight + 15;
-    doc.setTextColor(0, 0, 0); // Reset color
+    yPosition += statBoxHeight + 25;
 
-    // Badges section with decorative styling
+    // ===========================
+    // BADGES SECTION - No Emojis
+    // ===========================
     if (badgesEarned.length > 0) {
-      // Section header
-      doc.setFillColor('#FFF9E6'); // Light yellow background
-      doc.roundedRect(15, yPosition - 5, pageWidth - 30, 12, 2, 2, 'F');
+      // Section header with modern styling
+      doc.setFillColor(255, 249, 230); // Warm yellow background
+      doc.roundedRect(margin - 5, yPosition - 8, pageWidth - (margin * 2) + 10, 16, 3, 3, 'F');
 
-      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor('#F59E0B'); // Orange color
-      doc.text('🏆 Badges Earned', 20, yPosition + 2);
-      yPosition += 12;
+      doc.setFontSize(16);
+      doc.setTextColor(245, 158, 11); // Orange
+      doc.text('BADGES EARNED', margin, yPosition);
 
-      doc.setFontSize(10);
+      yPosition += 15;
+
       doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
 
       badgesEarned.forEach((badgeId: string, index: number) => {
         const badge = BADGES[badgeId];
         if (badge) {
-          // Alternating background colors for badges
-          if (index % 2 === 0) {
-            doc.setFillColor('#F9FAFB');
-            doc.roundedRect(18, yPosition - 3, pageWidth - 36, 8, 1, 1, 'F');
+          // Check if we need a new page
+          if (yPosition > pageHeight - 50) {
+            doc.addPage();
+            yPosition = 25;
           }
 
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor('#006BFF');
-          doc.text(`• ${badge.name}`, 22, yPosition + 2);
+          // Alternating background for better readability
+          if (index % 2 === 0) {
+            doc.setFillColor(249, 250, 251);
+            doc.roundedRect(margin - 2, yPosition - 4, pageWidth - (margin * 2) + 4, 10, 2, 2, 'F');
+          }
 
+          // Badge number indicator
+          doc.setFillColor(0, 107, 255);
+          doc.circle(margin + 3, yPosition, 2, 'F');
+
+          // Badge name (bold)
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(0, 107, 255);
+          doc.text(badge.name, margin + 8, yPosition + 1);
+
+          // Badge description
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(80, 80, 80);
-          doc.text(`: ${badge.description}`, 22 + doc.getTextWidth(`• ${badge.name}`) + 2, yPosition + 2);
+          const nameWidth = doc.getTextWidth(badge.name);
+          doc.text(` - ${badge.description}`, margin + 8 + nameWidth, yPosition + 1);
 
-          yPosition += 8;
+          yPosition += 10;
         }
       });
-      yPosition += 8;
+
+      yPosition += 10;
     }
 
     // Check if we need a new page for About Me
-    if (yPosition > pageHeight - 40 && collage.aboutMe) {
+    if (yPosition > pageHeight - 60 && collage.aboutMe) {
       doc.addPage();
-      yPosition = 20;
+      yPosition = 25;
     }
 
-    // About Me section with styled box
+    // ===========================
+    // ABOUT ME SECTION - Modern Styling
+    // ===========================
     if (collage.aboutMe) {
       // Section header
-      doc.setFillColor('#E3F2FD'); // Light blue background
-      doc.roundedRect(15, yPosition - 5, pageWidth - 30, 12, 2, 2, 'F');
+      doc.setFillColor(227, 242, 253); // Light blue
+      doc.roundedRect(margin - 5, yPosition - 8, pageWidth - (margin * 2) + 10, 16, 3, 3, 'F');
 
-      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor('#006BFF');
-      doc.text('✍️ About Me', 20, yPosition + 2);
-      yPosition += 15;
+      doc.setFontSize(16);
+      doc.setTextColor(0, 107, 255);
+      doc.text('ABOUT ME', margin, yPosition);
 
-      // Content box
-      const contentBoxPadding = 8;
-      const contentStartY = yPosition;
+      yPosition += 18;
 
-      // Estimate height needed for content
-      const maxWidth = pageWidth - 40;
-      const lines = doc.splitTextToSize(collage.aboutMe, maxWidth - contentBoxPadding * 2);
-      const contentHeight = lines.length * 5 + contentBoxPadding * 2;
+      // Content box with better styling
+      const contentPadding = 10;
+      const maxWidth = pageWidth - (margin * 2) - (contentPadding * 2);
+      const lines = doc.splitTextToSize(collage.aboutMe, maxWidth);
+      const lineHeight = 6;
+      const contentHeight = (lines.length * lineHeight) + (contentPadding * 2);
 
-      // Draw content box background
-      doc.setFillColor('#F9FAFB');
-      doc.roundedRect(20, contentStartY, pageWidth - 40, contentHeight, 2, 2, 'F');
-      doc.setDrawColor('#E5E7EB');
-      doc.setLineWidth(0.3);
-      doc.roundedRect(20, contentStartY, pageWidth - 40, contentHeight, 2, 2, 'S');
+      // Content box background
+      doc.setFillColor(249, 250, 251);
+      doc.roundedRect(margin, yPosition, pageWidth - (margin * 2), contentHeight, 4, 4, 'F');
 
-      // Add text content
-      yPosition = contentStartY + contentBoxPadding + 4;
-      doc.setFontSize(10);
+      // Subtle border
+      doc.setDrawColor(229, 231, 235);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(margin, yPosition, pageWidth - (margin * 2), contentHeight, 4, 4, 'S');
+
+      // Add quote-style decoration
+      doc.setDrawColor(0, 107, 255);
+      doc.setLineWidth(3);
+      doc.line(margin + 5, yPosition + 5, margin + 5, yPosition + contentHeight - 5);
+
+      // Text content with better typography
+      yPosition += contentPadding + 5;
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
 
       lines.forEach((line: string) => {
-        if (yPosition > pageHeight - 25) {
+        if (yPosition > pageHeight - 30) {
           doc.addPage();
-          yPosition = 25;
+          yPosition = 30;
         }
-        doc.text(line, 20 + contentBoxPadding, yPosition);
-        yPosition += 5;
+        doc.text(line, margin + contentPadding + 8, yPosition);
+        yPosition += lineHeight;
       });
 
-      yPosition += contentBoxPadding + 5;
+      yPosition += contentPadding + 5;
     }
 
-    // Modern Footer
-    const footerHeight = 15;
-    const footerY = pageHeight - footerHeight;
+    // ===========================
+    // MODERN FOOTER
+    // ===========================
+    const footerY = pageHeight - 20;
 
-    // Footer background
-    doc.setFillColor('#F3F4F6');
-    doc.rect(0, footerY, pageWidth, footerHeight, 'F');
-
-    // Footer line
-    doc.setDrawColor('#006BFF');
+    // Decorative line
+    doc.setDrawColor(0, 107, 255);
     doc.setLineWidth(0.5);
-    doc.line(0, footerY, pageWidth, footerY);
+    doc.line(margin, footerY, pageWidth - margin, footerY);
 
     // Footer text
-    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    const dateText = `Created on ${new Date(collage.completedAt || Date.now()).toLocaleDateString('en-US', {
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+
+    const dateText = `Created ${new Date(collage.completedAt || Date.now()).toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     })}`;
-    doc.text(dateText, pageWidth / 2, footerY + 9, { align: 'center' });
+    doc.text(dateText, pageWidth / 2, footerY + 8, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.text('Ascend Now Career Exploration Platform', pageWidth / 2, footerY + 13, { align: 'center' });
 
     // Generate PDF as buffer
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'));

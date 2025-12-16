@@ -69,6 +69,43 @@ export default function BuilderPage() {
 
   const { lastSaved, saving, saveNow } = useAutoSave(canvasRef, collageId);
 
+  // Save canvas when component unmounts (user navigates away) - safety net only
+  useEffect(() => {
+    return () => {
+      console.log('[Builder] Component unmounting - attempting safety save...');
+      if (canvasRef.current && collageId) {
+        const canvasJSON = canvasRef.current.toJSON();
+        const objectCount = canvasRef.current.getObjects().length;
+
+        console.log('[Builder] Unmount save - objects:', objectCount);
+
+        // Try sendBeacon first (most reliable for unmount), fallback to fetch with keepalive
+        const data = JSON.stringify({
+          canvasJSON,
+          elementCount: objectCount,
+        });
+
+        // Try navigator.sendBeacon if available (more reliable for page unload)
+        const beaconSent = navigator.sendBeacon
+          ? navigator.sendBeacon(`/api/collages/${collageId}`, new Blob([data], { type: 'application/json' }))
+          : false;
+
+        if (beaconSent) {
+          console.log('[Builder] Unmount save sent via sendBeacon');
+        } else {
+          // Fallback to fetch with keepalive
+          console.log('[Builder] Unmount save using fetch with keepalive');
+          fetch(`/api/collages/${collageId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: data,
+            keepalive: true,
+          }).catch(err => console.error('[Builder] Unmount save failed:', err));
+        }
+      }
+    };
+  }, [collageId]);
+
   // Debug: Monitor completedChallenges
   useEffect(() => {
     console.log('[Builder] completedChallenges updated:', completedChallenges);
@@ -155,6 +192,12 @@ export default function BuilderPage() {
     console.log('[Builder] handleCheckCompletion called for challenge', currentChallenge);
     console.log('[Builder] Current completedChallenges:', completedChallenges);
 
+    // IMPORTANT: Save canvas before marking challenge complete
+    // This ensures all elements (including text/quotes) are saved immediately
+    console.log('[Builder] Saving canvas before marking challenge complete...');
+    await saveNow();
+    console.log('[Builder] Canvas saved');
+
     // Don't call checkChallengeCompletion here - markChallengeComplete will do it
     const badge = await markChallengeComplete(currentChallenge, collageId);
 
@@ -199,8 +242,15 @@ export default function BuilderPage() {
   const handleFinish = async () => {
     if (!collageId) return;
 
-    // Save one last time
+    console.log('[Builder] handleFinish - saving canvas before navigation...');
+
+    // Save and WAIT for it to complete
     await saveNow();
+
+    // Add a small delay to ensure the save request completes
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    console.log('[Builder] Save complete, navigating to About Me page');
 
     // Navigate to About Me page
     router.push(`/collage/about-me?id=${collageId}`);
@@ -217,22 +267,37 @@ export default function BuilderPage() {
           <div className="flex-1">
             <ProgressBar value={progress} showLabel label={`${Math.round(progress)}%`} />
           </div>
-          <div className="text-sm text-gray-600">
-            {saving ? (
-              <span className="text-blue-primary">💾 Saving...</span>
-            ) : lastSaved ? (
-              <span>✓ Saved {new Date(lastSaved).toLocaleTimeString()}</span>
-            ) : (
-              <span>Not saved yet</span>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-600">
+              {saving ? (
+                <span className="text-blue-primary">💾 Saving...</span>
+              ) : lastSaved ? (
+                <span>✓ Saved {new Date(lastSaved).toLocaleTimeString()}</span>
+              ) : (
+                <span>Not saved yet</span>
+              )}
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                console.log('[Builder] Manual save button clicked');
+                await saveNow();
+                alert('Canvas saved successfully!');
+              }}
+              disabled={saving}
+              title="Manually save your canvas now"
+            >
+              💾 Save Now
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => router.push('/')}
+            >
+              Exit
+            </Button>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => router.push('/')}
-          >
-            Exit
-          </Button>
         </div>
       </div>
 
