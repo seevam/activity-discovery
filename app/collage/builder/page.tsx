@@ -36,6 +36,7 @@ export default function BuilderPage() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
   const [templateData, setTemplateData] = useState<any>(null);
+  const [completingChallenge, setCompletingChallenge] = useState(false);
   const [canvasBackground, setCanvasBackground] = useState<{
     color?: string;
     gradient?: { color1: string; color2: string };
@@ -187,42 +188,48 @@ export default function BuilderPage() {
 
   // Check challenge completion
   const handleCheckCompletion = async () => {
-    if (!collageId) return;
+    if (!collageId || completingChallenge) return;
 
-    console.log('[Builder] handleCheckCompletion called for challenge', currentChallenge);
-    console.log('[Builder] Current completedChallenges:', completedChallenges);
+    setCompletingChallenge(true);
 
-    // IMPORTANT: Save canvas before marking challenge complete
-    // This ensures all elements (including text/quotes) are saved immediately
-    console.log('[Builder] Saving canvas before marking challenge complete...');
-    await saveNow();
-    console.log('[Builder] Canvas saved');
+    try {
+      console.log('[Builder] handleCheckCompletion called for challenge', currentChallenge);
+      console.log('[Builder] Current completedChallenges:', completedChallenges);
 
-    // Don't call checkChallengeCompletion here - markChallengeComplete will do it
-    const badge = await markChallengeComplete(currentChallenge, collageId);
+      // IMPORTANT: Save canvas before marking challenge complete
+      // This ensures all elements (including text/quotes) are saved immediately
+      console.log('[Builder] Saving canvas before marking challenge complete...');
+      await saveNow();
+      console.log('[Builder] Canvas saved');
 
-    console.log('[Builder] Badge result:', badge);
+      // Don't call checkChallengeCompletion here - markChallengeComplete will do it
+      const badge = await markChallengeComplete(currentChallenge, collageId);
 
-    if (badge) {
-      // Show celebration
-      triggerCelebration();
+      console.log('[Builder] Badge result:', badge);
 
-      // Show badge unlock notification
-      setTimeout(() => {
-        alert(`Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
-      }, 1000);
+      if (badge) {
+        // Show celebration
+        triggerCelebration();
 
-      // Move to next challenge (only for challenges 1-4)
-      // Challenge 5 completion shows the "All Challenges Complete" message instead
-      if (currentChallenge < 5) {
+        // Show badge unlock notification
         setTimeout(() => {
-          nextChallenge();
-        }, 2000);
+          alert(`Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
+        }, 1000);
+
+        // Move to next challenge (only for challenges 1-4)
+        // Challenge 5 completion shows the "All Challenges Complete" message instead
+        if (currentChallenge < 5) {
+          setTimeout(() => {
+            nextChallenge();
+          }, 2000);
+        } else {
+          console.log('[Builder] Challenge 5 complete - user should see "All Challenges Complete" message');
+        }
       } else {
-        console.log('[Builder] Challenge 5 complete - user should see "All Challenges Complete" message');
+        console.log('[Builder] No badge unlocked - challenge may already be complete');
       }
-    } else {
-      console.log('[Builder] No badge unlocked - challenge may already be complete');
+    } finally {
+      setCompletingChallenge(false);
     }
   };
 
@@ -248,7 +255,7 @@ export default function BuilderPage() {
     await saveNow();
 
     // Add a small delay to ensure the save request completes
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     console.log('[Builder] Save complete, navigating to About Me page');
 
@@ -370,8 +377,9 @@ export default function BuilderPage() {
                           variant="success"
                           className="w-full mt-3"
                           onClick={handleCheckCompletion}
+                          disabled={completingChallenge || saving}
                         >
-                          ✓ Mark Challenge Complete
+                          {completingChallenge ? '💾 Saving & Completing...' : '✓ Mark Challenge Complete'}
                         </Button>
                       )}
                     </div>
