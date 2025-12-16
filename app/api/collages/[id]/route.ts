@@ -22,15 +22,16 @@ export async function GET(
     }
 
     const collage = collages[0];
+    const canvasJSON = collage.canvasJSON as any;
     console.log('[API] Collage retrieved:', {
       id: collage.id,
-      hasCanvasJSON: !!collage.canvasJSON,
-      objectCount: collage.canvasJSON?.objects?.length || 0,
+      hasCanvasJSON: !!canvasJSON,
+      objectCount: canvasJSON?.objects?.length || 0,
       elementCount: collage.elementCount
     });
 
-    if (collage.canvasJSON?.objects) {
-      console.log('[API] Canvas objects retrieved:', collage.canvasJSON.objects.map((o: any) => ({
+    if (canvasJSON?.objects) {
+      console.log('[API] Canvas objects retrieved:', canvasJSON.objects.map((o: any) => ({
         type: o.type,
         text: o.type === 'text' ? o.text?.substring(0, 30) : undefined
       })));
@@ -98,7 +99,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Collage not found' }, { status: 404 });
     }
 
-    console.log('[API] Collage updated successfully, objects saved:', updated[0].canvasJSON?.objects?.length || 0);
+    const updatedCanvasJSON = updated[0].canvasJSON as any;
+    console.log('[API] Collage updated successfully, objects saved:', updatedCanvasJSON?.objects?.length || 0);
     return NextResponse.json(updated[0]);
   } catch (error) {
     console.error('[API] Error updating collage:', error);
