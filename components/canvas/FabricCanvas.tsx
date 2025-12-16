@@ -199,16 +199,32 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
       }
 
       console.log('[FabricCanvas] Loading image from URL...');
+
+      // Set a timeout to detect loading failures
+      const timeoutId = setTimeout(() => {
+        console.error('[FabricCanvas] Image loading timed out');
+        reject(new Error('Image loading timed out'));
+      }, 30000); // 30 second timeout
+
       fabric.Image.fromURL(
         url,
         (img: fabric.Image) => {
+          clearTimeout(timeoutId);
+
           if (!fabricRef.current || !img) {
             console.error('[FabricCanvas] Failed to load image - no canvas or no image');
             reject(new Error('Failed to load image'));
             return;
           }
 
-          console.log('[FabricCanvas] Image loaded, dimensions:', img.width, 'x', img.height);
+          // Check if image actually loaded (has dimensions)
+          if (!img.width || !img.height || img.width === 0 || img.height === 0) {
+            console.error('[FabricCanvas] Image loaded but has no dimensions:', img.width, 'x', img.height);
+            reject(new Error('Image loaded but has invalid dimensions'));
+            return;
+          }
+
+          console.log('[FabricCanvas] Image loaded successfully, dimensions:', img.width, 'x', img.height);
 
           // Scale to fit
           const maxWidth = 300;
@@ -235,11 +251,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
           console.log('[FabricCanvas] Image added to canvas, total objects:', fabricRef.current.getObjects().length);
           resolve();
         },
-        { crossOrigin: 'anonymous' },
-        (error: any) => {
-          console.error('[FabricCanvas] Error loading image:', error);
-          reject(new Error(`Failed to load image: ${error?.message || 'Unknown error'}`));
-        }
+        { crossOrigin: 'anonymous' }
       );
     });
   };
