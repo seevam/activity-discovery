@@ -211,17 +211,12 @@ export default function BuilderPage() {
         // Show celebration
         triggerCelebration();
 
-        // Show badge unlock notification
-        setTimeout(() => {
-          alert(`Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
-        }, 1000);
+        // Show badge unlock notification immediately
+        alert(`Badge Unlocked: ${badge.name}!\n\n${badge.stickersUnlocked.length} new stickers added!`);
 
-        // Move to next challenge (only for challenges 1-4)
-        // Challenge 5 completion shows the "All Challenges Complete" message instead
+        // Move to next challenge immediately after user dismisses alert
         if (currentChallenge < 5) {
-          setTimeout(() => {
-            nextChallenge();
-          }, 2000);
+          nextChallenge();
         } else {
           console.log('[Builder] Challenge 5 complete - user should see "All Challenges Complete" message');
         }
