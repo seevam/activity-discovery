@@ -113,22 +113,49 @@ function ReviewContent() {
           });
 
           fabricCanvas.renderAll();
-          resolve();
-        }, (o: any, err: any) => {
-          console.error('[Review] Error loading object from JSON:', { object: o, error: err });
-          reject(err);
+
+          // Small delay to ensure rendering completes
+          setTimeout(() => resolve(), 100);
+        }, (objectData: any, err: any) => {
+          // Log detailed error information
+          console.error('[Review] Error loading object from JSON:', {
+            objectType: objectData?.type,
+            objectText: objectData?.type === 'text' ? objectData?.text : undefined,
+            errorMessage: err?.message || err,
+            errorStack: err?.stack,
+            fullError: err
+          });
+          // Don't reject - Fabric.js will skip the problematic object and continue
         });
       });
 
-      // Export as data URL
-      const dataUrl = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
-      console.log('[Review] Canvas exported to data URL, length:', dataUrl.length);
-      setCanvasImageUrl(dataUrl);
+      // Export as data URL with error handling
+      try {
+        const dataUrl = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+        console.log('[Review] Canvas exported to data URL, length:', dataUrl.length);
+        setCanvasImageUrl(dataUrl);
+      } catch (exportError) {
+        console.error('[Review] Failed to export canvas to data URL:', exportError);
+        // Try alternative export method
+        try {
+          const dataUrl = offscreenCanvas.toDataURL('image/png');
+          console.log('[Review] Fallback export successful, length:', dataUrl.length);
+          setCanvasImageUrl(dataUrl);
+        } catch (fallbackError) {
+          console.error('[Review] Fallback export also failed:', fallbackError);
+          throw new Error('Both export methods failed');
+        }
+      }
 
       // Clean up
       fabricCanvas.dispose();
     } catch (error) {
       console.error('[Review] Failed to load canvas image:', error);
+      console.error('[Review] Error details:', {
+        message: (error as Error)?.message,
+        stack: (error as Error)?.stack,
+        error
+      });
       alert('Error loading canvas. Please check the console for details and try refreshing the page.');
     }
   };
