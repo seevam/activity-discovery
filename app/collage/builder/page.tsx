@@ -69,6 +69,31 @@ export default function BuilderPage() {
 
   const { lastSaved, saving, saveNow } = useAutoSave(canvasRef, collageId);
 
+  // Save canvas when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      console.log('[Builder] Component unmounting - saving canvas...');
+      if (canvasRef.current && collageId) {
+        // Use synchronous navigator.sendBeacon or fetch with keepalive for unmount
+        const canvasJSON = canvasRef.current.toJSON();
+        const objectCount = canvasRef.current.getObjects().length;
+
+        console.log('[Builder] Unmount save - objects:', objectCount);
+
+        // Use fetch with keepalive to ensure request completes even after unmount
+        fetch(`/api/collages/${collageId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            canvasJSON,
+            elementCount: objectCount,
+          }),
+          keepalive: true,
+        }).catch(err => console.error('[Builder] Unmount save failed:', err));
+      }
+    };
+  }, [collageId]);
+
   // Debug: Monitor completedChallenges
   useEffect(() => {
     console.log('[Builder] completedChallenges updated:', completedChallenges);
@@ -223,22 +248,37 @@ export default function BuilderPage() {
           <div className="flex-1">
             <ProgressBar value={progress} showLabel label={`${Math.round(progress)}%`} />
           </div>
-          <div className="text-sm text-gray-600">
-            {saving ? (
-              <span className="text-blue-primary">💾 Saving...</span>
-            ) : lastSaved ? (
-              <span>✓ Saved {new Date(lastSaved).toLocaleTimeString()}</span>
-            ) : (
-              <span>Not saved yet</span>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-600">
+              {saving ? (
+                <span className="text-blue-primary">💾 Saving...</span>
+              ) : lastSaved ? (
+                <span>✓ Saved {new Date(lastSaved).toLocaleTimeString()}</span>
+              ) : (
+                <span>Not saved yet</span>
+              )}
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                console.log('[Builder] Manual save button clicked');
+                await saveNow();
+                alert('Canvas saved successfully!');
+              }}
+              disabled={saving}
+              title="Manually save your canvas now"
+            >
+              💾 Save Now
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => router.push('/')}
+            >
+              Exit
+            </Button>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => router.push('/')}
-          >
-            Exit
-          </Button>
         </div>
       </div>
 

@@ -72,7 +72,18 @@ function ReviewContent() {
     try {
       console.log('[Review] Loading canvas from JSON, objects count:', canvasJSON?.objects?.length);
       if (canvasJSON?.objects && canvasJSON.objects.length > 0) {
-        console.log('[Review] First object:', canvasJSON.objects[0]);
+        console.log('[Review] First 3 objects:', canvasJSON.objects.slice(0, 3).map((o: any) => ({
+          type: o.type,
+          text: o.type === 'text' ? o.text : undefined
+        })));
+      }
+
+      // Validate canvas JSON
+      if (!canvasJSON || !canvasJSON.objects || canvasJSON.objects.length === 0) {
+        console.warn('[Review] Canvas JSON is empty or has no objects!');
+        console.log('[Review] Full canvas JSON:', canvasJSON);
+        alert('Warning: Your canvas appears to be empty. Elements may not have been saved properly. Try going back to the builder and saving again.');
+        return;
       }
 
       // Dynamically import fabric
@@ -85,23 +96,45 @@ function ReviewContent() {
 
       const fabricCanvas = new fabric.Canvas(offscreenCanvas);
 
-      // Load from JSON
-      await new Promise<void>((resolve) => {
+      // Set background if present
+      if (canvasJSON.background || canvasJSON.backgroundColor) {
+        console.log('[Review] Setting background:', canvasJSON.background || canvasJSON.backgroundColor);
+        fabricCanvas.backgroundColor = canvasJSON.background || canvasJSON.backgroundColor;
+      }
+
+      // Load from JSON with error handling
+      await new Promise<void>((resolve, reject) => {
         fabricCanvas.loadFromJSON(canvasJSON, () => {
-          console.log('[Review] Canvas loaded, object count:', fabricCanvas.getObjects().length);
+          const loadedObjects = fabricCanvas.getObjects();
+          console.log('[Review] Canvas loaded successfully!');
+          console.log('[Review] Loaded object count:', loadedObjects.length);
+          console.log('[Review] Object types:', loadedObjects.map(o => o.type).join(', '));
+
+          // Log text objects specifically
+          const textObjects = loadedObjects.filter(o => o.type === 'text');
+          console.log('[Review] Text objects:', textObjects.length);
+          textObjects.forEach((obj: any, idx) => {
+            console.log(`[Review] Text ${idx + 1}:`, obj.text?.substring(0, 50));
+          });
+
           fabricCanvas.renderAll();
           resolve();
+        }, (o: any, err: any) => {
+          console.error('[Review] Error loading object from JSON:', { object: o, error: err });
+          reject(err);
         });
       });
 
       // Export as data URL
       const dataUrl = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+      console.log('[Review] Canvas exported to data URL, length:', dataUrl.length);
       setCanvasImageUrl(dataUrl);
 
       // Clean up
       fabricCanvas.dispose();
     } catch (error) {
-      console.error('Failed to load canvas image:', error);
+      console.error('[Review] Failed to load canvas image:', error);
+      alert('Error loading canvas. Please check the console for details and try refreshing the page.');
     }
   };
 
