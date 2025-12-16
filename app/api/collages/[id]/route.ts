@@ -47,16 +47,13 @@ export async function GET(
   }
 }
 
-// PUT /api/collages/[id] - Update collage (auto-save)
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// Shared update logic for both PUT and POST (for sendBeacon compatibility)
+async function updateCollage(request: Request, collageId: string) {
   try {
     const body = await request.json();
     const { canvasJSON, elementCount, aboutMe, ...otherUpdates } = body;
 
-    console.log('[API] PUT /api/collages/[id] - Updating collage:', params.id);
+    console.log('[API] Updating collage:', collageId);
     console.log('[API] Canvas data:', {
       hasCanvasJSON: !!canvasJSON,
       objectCount: canvasJSON?.objects?.length || 0,
@@ -91,11 +88,11 @@ export async function PUT(
     const updated = await db
       .update(identityCollages)
       .set(updateData)
-      .where(eq(identityCollages.id, params.id))
+      .where(eq(identityCollages.id, collageId))
       .returning();
 
     if (updated.length === 0) {
-      console.error('[API] Collage not found:', params.id);
+      console.error('[API] Collage not found:', collageId);
       return NextResponse.json({ error: 'Collage not found' }, { status: 404 });
     }
 
@@ -109,4 +106,20 @@ export async function PUT(
       { status: 500 }
     );
   }
+}
+
+// PUT /api/collages/[id] - Update collage (auto-save)
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  return updateCollage(request, params.id);
+}
+
+// POST /api/collages/[id] - Update collage (for sendBeacon compatibility)
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  return updateCollage(request, params.id);
 }
