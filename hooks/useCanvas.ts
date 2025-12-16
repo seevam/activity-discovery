@@ -6,21 +6,27 @@ export function useCanvas() {
   const [selectedTool, setSelectedTool] = useState<string>('select');
 
   const addImage = useCallback(async (url: string, challengeId?: number) => {
-    console.log('[useCanvas] addImage called', { url, challengeId, hasCanvasRef: !!canvasRef.current });
+    console.log('[useCanvas] addImage called', { url: url.substring(0, 100) + '...', challengeId, hasCanvasRef: !!canvasRef.current });
     if (!canvasRef.current) {
       console.error('[useCanvas] Cannot add image - canvasRef.current is null');
+      alert('Canvas not ready. Please try again.');
       return;
     }
 
-    await canvasRef.current.addImage(url);
-    console.log('[useCanvas] Image added successfully');
+    try {
+      await canvasRef.current.addImage(url);
+      console.log('[useCanvas] Image added successfully');
 
-    // Tag with challenge
-    const canvas = canvasRef.current.canvas;
-    const activeObj = canvas?.getActiveObject();
-    if (activeObj && challengeId) {
-      (activeObj as any).challenge = challengeId;
-      (activeObj as any).source = 'image';
+      // Tag with challenge
+      const canvas = canvasRef.current.canvas;
+      const activeObj = canvas?.getActiveObject();
+      if (activeObj && challengeId) {
+        (activeObj as any).challenge = challengeId;
+        (activeObj as any).source = 'image';
+      }
+    } catch (error) {
+      console.error('[useCanvas] Failed to add image:', error);
+      alert('Failed to add image to canvas. The image may have failed to load. Please try generating again.');
     }
   }, []);
 

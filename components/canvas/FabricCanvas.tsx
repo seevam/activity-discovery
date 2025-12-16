@@ -190,19 +190,25 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
 
   // Add image
   const addImage = async (url: string): Promise<void> => {
+    console.log('[FabricCanvas] addImage called with URL:', url);
     return new Promise((resolve, reject) => {
       if (!fabricRef.current) {
+        console.error('[FabricCanvas] Canvas not initialized');
         reject(new Error('Canvas not initialized'));
         return;
       }
 
+      console.log('[FabricCanvas] Loading image from URL...');
       fabric.Image.fromURL(
         url,
         (img: fabric.Image) => {
           if (!fabricRef.current || !img) {
+            console.error('[FabricCanvas] Failed to load image - no canvas or no image');
             reject(new Error('Failed to load image'));
             return;
           }
+
+          console.log('[FabricCanvas] Image loaded, dimensions:', img.width, 'x', img.height);
 
           // Scale to fit
           const maxWidth = 300;
@@ -225,9 +231,15 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
           fabricRef.current.add(img);
           fabricRef.current.setActiveObject(img);
           fabricRef.current.renderAll();
+
+          console.log('[FabricCanvas] Image added to canvas, total objects:', fabricRef.current.getObjects().length);
           resolve();
         },
-        { crossOrigin: 'anonymous' }
+        { crossOrigin: 'anonymous' },
+        (error: any) => {
+          console.error('[FabricCanvas] Error loading image:', error);
+          reject(new Error(`Failed to load image: ${error?.message || 'Unknown error'}`));
+        }
       );
     });
   };
