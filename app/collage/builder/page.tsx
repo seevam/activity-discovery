@@ -124,7 +124,7 @@ export default function BuilderPage() {
 
         // Set canvas background once based on template
         if (parsedTemplate.id === 'prefilled') {
-          setCanvasBackground({ gradient: { color1: '#BCF2F6', color2: '#FFF100' } });
+          setCanvasBackground({ gradient: { color1: '#E0F2FE', color2: '#8B5CF6' } });
         } else {
           setCanvasBackground({ color: parsedTemplate.backgroundColor || '#FFFFFF' });
         }

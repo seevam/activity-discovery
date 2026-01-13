@@ -177,7 +177,7 @@ export default function Session1InputPage() {
                 className="flex items-center gap-2 p-3 border-2 rounded-xl cursor-pointer hover:border-blue-primary transition-colors"
                 style={{
                   borderColor: formData.interests.includes(interest)
-                    ? '#006BFF'
+                    ? '#3B82F6'
                     : '#E5E7EB',
                   backgroundColor: formData.interests.includes(interest)
                     ? '#EFF6FF'
@@ -255,7 +255,7 @@ export default function Session1InputPage() {
                 className="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer hover:border-blue-primary transition-colors"
                 style={{
                   borderColor: formData.careerClusters.includes(cluster)
-                    ? '#006BFF'
+                    ? '#3B82F6'
                     : '#E5E7EB',
                   backgroundColor: formData.careerClusters.includes(cluster)
                     ? '#EFF6FF'

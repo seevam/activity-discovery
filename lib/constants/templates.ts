@@ -26,7 +26,7 @@ export const TEMPLATES: CollageTemplate[] = [
       { type: 'center', position: 'center', label: 'About Me', size: 'large' },
       { type: 'orbit', position: 'surrounding', label: 'Surrounding Elements' }
     ],
-    backgroundColor: '#BCF2F6',
+    backgroundColor: '#E0F2FE',
     gridLines: false
   },
   {

@@ -60,7 +60,7 @@ export default function TemplateSelectionPage() {
                   backgroundColor: template.backgroundColor || '#FFFFFF',
                   backgroundImage:
                     template.id === 'prefilled'
-                      ? 'linear-gradient(135deg, #BCF2F6, #FFF100)'
+                      ? 'linear-gradient(135deg, #E0F2FE, #8B5CF6)'
                       : undefined,
                 }}
               >

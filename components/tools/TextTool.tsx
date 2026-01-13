@@ -30,7 +30,7 @@ export function TextTool({ onAddText, onClose, collageId, currentChallenge }: Te
   const [text, setText] = useState('');
   const [fontFamily, setFontFamily] = useState('Nunito');
   const [fontSize, setFontSize] = useState(24);
-  const [color, setColor] = useState('#006BFF');
+  const [color, setColor] = useState('#3B82F6');
   const [bold, setBold] = useState(false);
   const [italic, setItalic] = useState(false);
   const [shadow, setShadow] = useState(false);

@@ -92,9 +92,9 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
       // Set selection style
       fabric.Object.prototype.set({
         transparentCorners: false,
-        cornerColor: '#006BFF',
+        cornerColor: '#3B82F6',
         cornerStyle: 'circle',
-        borderColor: '#006BFF',
+        borderColor: '#3B82F6',
         borderScaleFactor: 2,
         cornerSize: 10,
       });
@@ -265,7 +265,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
       top: fabricRef.current.height! / 2,
       fontFamily: 'Nunito',
       fontSize: 24,
-      fill: '#006BFF',
+      fill: '#3B82F6',
       originX: 'center',
       originY: 'center',
       ...options,
