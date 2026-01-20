@@ -28,11 +28,8 @@ const GRADIENTS = [
   { name: 'Cool Twilight', value: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' }
 ];
 
-const CANVAS_SIZES = [
-  { name: 'Standard', width: 800, height: 600, description: 'Perfect balance' },
-  { name: 'Wide', width: 1000, height: 600, description: 'Great for landscapes' },
-  { name: 'Portrait', width: 600, height: 800, description: 'Vertical layout' }
-];
+// Default canvas size - fixed for all users
+const DEFAULT_CANVAS_SIZE = { width: 800, height: 600 };
 
 const MOODS = [
   {
@@ -112,7 +109,6 @@ export default function TemplateSelectionPage() {
   const [backgroundType, setBackgroundType] = useState<'solid' | 'gradient' | 'custom'>('solid');
   const [selectedBackground, setSelectedBackground] = useState(SOLID_COLORS[0].value);
   const [customColor, setCustomColor] = useState('#FFFFFF');
-  const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[0]);
   const [selectedMood, setSelectedMood] = useState(MOODS[0]);
   const [showTutorial, setShowTutorial] = useState(false);
 
@@ -120,8 +116,8 @@ export default function TemplateSelectionPage() {
     // Save canvas preferences to localStorage
     const canvasConfig = {
       background: backgroundType === 'custom' ? customColor : selectedBackground,
-      width: canvasSize.width,
-      height: canvasSize.height,
+      width: DEFAULT_CANVAS_SIZE.width,
+      height: DEFAULT_CANVAS_SIZE.height,
       mood: selectedMood.name
     };
 
@@ -272,43 +268,6 @@ export default function TemplateSelectionPage() {
           </div>
         </Card>
 
-        {/* Canvas Size Preference */}
-        <Card className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span>📐</span>
-            <span>Canvas Size Preference</span>
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {CANVAS_SIZES.map((size) => (
-              <button
-                key={size.name}
-                onClick={() => setCanvasSize(size)}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  canvasSize.name === size.name
-                    ? 'border-blue-primary bg-blue-50 ring-4 ring-blue-100'
-                    : 'border-gray-300 hover:border-blue-primary hover:bg-gray-50'
-                }`}
-              >
-                <div className="text-center mb-3">
-                  <div
-                    className="mx-auto border-2 border-gray-400 bg-white"
-                    style={{
-                      width: `${(size.width / 10)}px`,
-                      height: `${(size.height / 10)}px`
-                    }}
-                  />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-1">{size.name}</h3>
-                <p className="text-sm text-gray-600">{size.description}</p>
-                <p className="text-xs text-gray-500 mt-2">
-                  {size.width} × {size.height}px
-                </p>
-              </button>
-            ))}
-          </div>
-        </Card>
-
         {/* Mood/Vibe Selection */}
         <Card className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -411,7 +370,7 @@ export default function TemplateSelectionPage() {
         {/* Summary Card */}
         <Card className="mb-8 bg-blue-50 border-2 border-blue-primary">
           <h3 className="font-bold text-gray-900 mb-3">📋 Your Canvas Setup</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-600">Background:</p>
               <div className="flex items-center gap-2 mt-1">
@@ -427,12 +386,6 @@ export default function TemplateSelectionPage() {
                     : 'Custom'}
                 </p>
               </div>
-            </div>
-            <div>
-              <p className="text-gray-600">Canvas Size:</p>
-              <p className="font-medium text-gray-900 mt-1">
-                {canvasSize.name} ({canvasSize.width} × {canvasSize.height})
-              </p>
             </div>
             <div>
               <p className="text-gray-600">Vibe:</p>
