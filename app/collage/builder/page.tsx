@@ -41,6 +41,7 @@ export default function BuilderPage() {
     color?: string;
     gradient?: { color1: string; color2: string };
   }>({ color: '#FFFFFF' });
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
 
   // Handle canvas ready - memoized to prevent re-renders
   const handleCanvasReady = useCallback(() => {
@@ -113,23 +114,43 @@ export default function BuilderPage() {
     console.log('[Builder] Should show "All Complete" message?', completedChallenges.length === 5);
   }, [completedChallenges]);
 
-  // Load template data on mount
+  // Load canvas configuration on mount
   useEffect(() => {
-    const template = localStorage.getItem('selectedTemplate');
-    if (template) {
+    const canvasConfig = localStorage.getItem('canvasConfig');
+    if (canvasConfig) {
       try {
-        const parsedTemplate = JSON.parse(template);
-        console.log('[Builder] Loaded template:', parsedTemplate);
-        setTemplateData(parsedTemplate);
+        const parsedConfig = JSON.parse(canvasConfig);
+        console.log('[Builder] Loaded canvas config:', parsedConfig);
 
-        // Set canvas background once based on template
-        if (parsedTemplate.id === 'prefilled') {
-          setCanvasBackground({ gradient: { color1: '#BCF2F6', color2: '#FFF100' } });
-        } else {
-          setCanvasBackground({ color: parsedTemplate.backgroundColor || '#FFFFFF' });
+        // Set canvas size
+        if (parsedConfig.width && parsedConfig.height) {
+          setCanvasSize({ width: parsedConfig.width, height: parsedConfig.height });
+        }
+
+        // Set canvas background
+        if (parsedConfig.background) {
+          // Check if it's a gradient (starts with "linear-gradient")
+          if (parsedConfig.background.startsWith('linear-gradient')) {
+            // Extract colors from gradient string
+            // Example: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            const colorMatches = parsedConfig.background.match(/#[0-9A-Fa-f]{6}/g);
+            if (colorMatches && colorMatches.length >= 2) {
+              setCanvasBackground({
+                gradient: { color1: colorMatches[0], color2: colorMatches[1] }
+              });
+            } else {
+              setCanvasBackground({ color: parsedConfig.background });
+            }
+          } else {
+            // Solid color
+            setCanvasBackground({ color: parsedConfig.background });
+          }
         }
       } catch (error) {
-        console.error('Failed to parse template:', error);
+        console.error('Failed to parse canvas config:', error);
+        // Fallback to defaults
+        setCanvasSize({ width: 800, height: 600 });
+        setCanvasBackground({ color: '#FFFFFF' });
       }
     }
   }, []);
@@ -138,17 +159,19 @@ export default function BuilderPage() {
   useEffect(() => {
     const initCollage = async () => {
       const session1Input = localStorage.getItem('session1Input');
-      const template = localStorage.getItem('selectedTemplate');
+      const canvasConfig = localStorage.getItem('canvasConfig');
 
-      console.log('Initializing collage...', { session1Input, template });
+      console.log('Initializing collage...', { session1Input, canvasConfig });
 
-      if (!session1Input || !template) {
-        console.log('Missing session1Input or template, redirecting...');
+      if (!session1Input || !canvasConfig) {
+        console.log('Missing session1Input or canvasConfig, redirecting...');
         router.push('/collage/session1-input');
         return;
       }
 
       try {
+        const config = JSON.parse(canvasConfig);
+
         // Create collage via API
         console.log('Creating collage via API...');
         const response = await fetch('/api/collages', {
@@ -157,7 +180,9 @@ export default function BuilderPage() {
           body: JSON.stringify({
             studentId,
             session1Input: JSON.parse(session1Input),
-            templateType: JSON.parse(template).id,
+            templateType: 'custom', // Changed from template-based to custom
+            canvasWidth: config.width || 800,
+            canvasHeight: config.height || 600,
           }),
         });
 
@@ -387,8 +412,8 @@ export default function BuilderPage() {
             <div className="mb-6">
               <FabricCanvas
                 ref={canvasRef}
-                width={800}
-                height={600}
+                width={canvasSize.width}
+                height={canvasSize.height}
                 backgroundColor={canvasBackground.color}
                 backgroundGradient={canvasBackground.gradient}
                 onObjectAdded={updateChallengeProgress}
