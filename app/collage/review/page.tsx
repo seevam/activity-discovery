@@ -188,6 +188,44 @@ function ReviewContent() {
     }
   };
 
+  const handleDownloadDOCX = async () => {
+    if (!collageId) return;
+
+    setDownloading(true);
+
+    try {
+      const response = await fetch(`/api/export/docx`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          collageId,
+          canvasDataUrl: canvasImageUrl // Pass the canvas image
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Identity_Collage_${collageId}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const error = await response.json();
+        console.error('DOCX export failed:', error);
+        alert('Failed to download Word document: ' + (error.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download Word document. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleDownloadPNG = async () => {
     if (!canvasImageUrl) {
       alert('Canvas image is still loading. Please wait a moment.');
@@ -319,7 +357,23 @@ function ReviewContent() {
         <Card className="mb-8">
           <h3 className="text-xl font-bold text-gray-900 mb-4">📥 Download Your Collage:</h3>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="border-2 border-gray-300 rounded-xl p-6 text-center hover:border-blue-primary transition-colors">
+              <div className="text-4xl mb-3">📝</div>
+              <h4 className="font-bold text-gray-900 mb-2">Word Document</h4>
+              <p className="text-sm text-gray-600 mb-4">
+                Complete report with themes & career paths
+              </p>
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={handleDownloadDOCX}
+                disabled={downloading}
+              >
+                {downloading ? 'Generating...' : 'Download DOCX'}
+              </Button>
+            </div>
+
             <div className="border-2 border-gray-300 rounded-xl p-6 text-center hover:border-blue-primary transition-colors">
               <div className="text-4xl mb-3">📄</div>
               <h4 className="font-bold text-gray-900 mb-2">PDF (Printable)</h4>
