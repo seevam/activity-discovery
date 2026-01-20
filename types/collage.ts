@@ -50,6 +50,8 @@ export interface Challenge {
   completed: boolean;
   elementsAdded: number;
   requiredElements: number;
+  helpText?: string; // Extra explanation for students who need more context
+  examples?: string[]; // Real examples students can see
 }
 
 export interface Badge {

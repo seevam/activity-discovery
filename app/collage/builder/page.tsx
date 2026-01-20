@@ -42,6 +42,8 @@ export default function BuilderPage() {
     gradient?: { color1: string; color2: string };
   }>({ color: '#FFFFFF' });
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const [showIdeas, setShowIdeas] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
 
   // Handle canvas ready - memoized to prevent re-renders
   const handleCanvasReady = useCallback(() => {
@@ -348,26 +350,81 @@ export default function BuilderPage() {
               <div className="flex items-start gap-4">
                 <div className="text-5xl">{currentChallengeData?.emoji}</div>
                 <div className="flex-1">
+                  {/* Big, Friendly Question Title */}
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Challenge {currentChallenge}: {currentChallengeData?.title}
+                    {currentChallengeData?.title}
                   </h2>
-                  <p className="text-gray-700 mb-3">{currentChallengeData?.description}</p>
 
-                  <div className="bg-blue-50 border-l-4 border-blue-primary p-3 rounded mb-3">
+                  {/* Simple Description */}
+                  <p className="text-lg text-gray-700 mb-3">{currentChallengeData?.description}</p>
+
+                  {/* Clear Task Box */}
+                  <div className="bg-blue-50 border-l-4 border-blue-primary p-4 rounded mb-3">
                     <p className="text-sm font-semibold text-gray-900 mb-1">
-                      📋 Your Task:
+                      ✅ Your Task:
                     </p>
-                    <p className="text-sm text-gray-700">{currentChallengeData?.requirement}</p>
+                    <p className="text-base text-gray-800 font-medium">{currentChallengeData?.requirement}</p>
                   </div>
 
+                  {/* Help Text if Available */}
+                  {currentChallengeData?.helpText && (
+                    <div className="bg-purple-50 border border-purple-200 p-3 rounded mb-3">
+                      <p className="text-sm text-purple-900">
+                        💭 {currentChallengeData.helpText}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Collapsible Ideas Section */}
                   {currentChallengeData && currentChallengeData.ideas.length > 0 && (
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 mb-1">💡 Ideas:</p>
-                      <ul className="text-sm text-gray-700 space-y-1">
-                        {currentChallengeData.ideas.map((idea, idx) => (
-                          <li key={idx}>• {idea}</li>
-                        ))}
-                      </ul>
+                    <div className="mb-3">
+                      <button
+                        onClick={() => setShowIdeas(!showIdeas)}
+                        className="w-full text-left flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        <span className="text-sm font-semibold text-gray-900">
+                          💡 Need ideas? Click here for suggestions!
+                        </span>
+                        <span className="text-gray-500">{showIdeas ? '▼' : '▶'}</span>
+                      </button>
+                      {showIdeas && (
+                        <div className="p-4 bg-gray-50 rounded-b border-t border-gray-200">
+                          <ul className="text-sm text-gray-700 space-y-1.5">
+                            {currentChallengeData.ideas.map((idea, idx) => (
+                              <li key={idx} className="leading-relaxed">
+                                {idea.startsWith('•') ? idea : `• ${idea}`}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Collapsible Examples Section */}
+                  {currentChallengeData?.examples && currentChallengeData.examples.length > 0 && (
+                    <div className="mb-3">
+                      <button
+                        onClick={() => setShowExamples(!showExamples)}
+                        className="w-full text-left flex items-center justify-between p-3 bg-green-50 hover:bg-green-100 rounded transition-colors"
+                      >
+                        <span className="text-sm font-semibold text-gray-900">
+                          👀 See examples from other students
+                        </span>
+                        <span className="text-gray-500">{showExamples ? '▼' : '▶'}</span>
+                      </button>
+                      {showExamples && (
+                        <div className="p-4 bg-green-50 rounded-b border-t border-green-200">
+                          <ul className="text-sm text-gray-700 space-y-2">
+                            {currentChallengeData.examples.map((example, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-green-600 flex-shrink-0">✓</span>
+                                <span className="leading-relaxed">{example}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
 
