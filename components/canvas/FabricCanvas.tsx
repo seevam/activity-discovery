@@ -59,6 +59,7 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
   // Initialize canvas
   useEffect(() => {
     if (canvasRef.current && !fabricRef.current) {
+      console.log('[FabricCanvas] Initializing with dimensions:', width, 'x', height);
       console.log('[FabricCanvas] Initializing with background:', { backgroundColor, backgroundGradient });
 
       fabricRef.current = new fabric.Canvas(canvasRef.current, {
@@ -140,6 +141,40 @@ const FabricCanvas = forwardRef<CanvasRef, FabricCanvasProps>((props, ref) => {
     // Callbacks are intentionally NOT in dependencies to prevent recreation
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, height]);
+
+  // Apply background changes without recreating canvas
+  useEffect(() => {
+    if (!fabricRef.current || !isCanvasReady) return;
+
+    console.log('[FabricCanvas] Background props changed:', { backgroundColor, backgroundGradient });
+
+    if (backgroundGradient) {
+      console.log('[FabricCanvas] Applying gradient:', backgroundGradient);
+      const gradient = new fabric.Gradient({
+        type: 'linear',
+        coords: {
+          x1: 0,
+          y1: 0,
+          x2: fabricRef.current.width!,
+          y2: fabricRef.current.height!,
+        },
+        colorStops: [
+          { offset: 0, color: backgroundGradient.color1 },
+          { offset: 1, color: backgroundGradient.color2 },
+        ],
+      });
+      fabricRef.current.setBackgroundColor(gradient, () => {
+        fabricRef.current?.renderAll();
+        console.log('[FabricCanvas] Gradient applied');
+      });
+    } else if (backgroundColor) {
+      console.log('[FabricCanvas] Applying solid color:', backgroundColor);
+      fabricRef.current.setBackgroundColor(backgroundColor, () => {
+        fabricRef.current?.renderAll();
+        console.log('[FabricCanvas] Color applied');
+      });
+    }
+  }, [backgroundColor, backgroundGradient, isCanvasReady]);
 
   // Save state for undo/redo
   const saveState = () => {
