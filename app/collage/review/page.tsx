@@ -376,54 +376,81 @@ function ReviewContent() {
 
         {/* Download Options */}
         <Card className="mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">📥 Download Your Collage:</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">📥 View & Download Your Report:</h3>
 
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="border-2 border-gray-300 rounded-xl p-6 text-center hover:border-blue-primary transition-colors">
-              <div className="text-4xl mb-3">📝</div>
-              <h4 className="font-bold text-gray-900 mb-2">Word Document</h4>
-              <p className="text-sm text-gray-600 mb-4">
-                Complete report with themes & career paths
-              </p>
-              <Button
-                variant="primary"
-                className="w-full"
-                onClick={handleDownloadDOCX}
-                disabled={downloading}
-              >
-                {downloading ? 'Generating...' : 'Download DOCX'}
-              </Button>
+          {/* Featured Printable Report */}
+          <div className="mb-6 border-2 border-blue-primary rounded-xl p-6 bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="flex items-center gap-4">
+              <div className="text-5xl">🖨️</div>
+              <div className="flex-1">
+                <h4 className="font-bold text-gray-900 text-lg mb-1">Printable Report (Recommended)</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  View your complete identity collage report with AI-powered analysis, themes, career pathways, and next steps. Perfect for printing or saving as PDF!
+                </p>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() => window.open(`/collage/print?id=${collageId}`, '_blank')}
+                >
+                  📄 View Printable Report →
+                </Button>
+              </div>
             </div>
+          </div>
 
-            <div className="border-2 border-gray-300 rounded-xl p-6 text-center hover:border-blue-primary transition-colors">
-              <div className="text-4xl mb-3">📄</div>
-              <h4 className="font-bold text-gray-900 mb-2">PDF (Printable)</h4>
-              <p className="text-sm text-gray-600 mb-4">
-                Full collage + badges + About Me
-              </p>
-              <Button
-                variant="primary"
-                className="w-full"
-                onClick={handleDownloadPDF}
-                disabled={downloading}
-              >
-                {downloading ? 'Generating...' : 'Download PDF'}
-              </Button>
-            </div>
+          {/* Alternative Downloads */}
+          <div className="border-t pt-4">
+            <p className="text-sm text-gray-600 mb-3">Other download options:</p>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="border-2 border-gray-300 rounded-xl p-4 text-center hover:border-blue-primary transition-colors">
+                <div className="text-3xl mb-2">📝</div>
+                <h4 className="font-bold text-gray-900 mb-2 text-sm">Word Document</h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Editable format
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDownloadDOCX}
+                  disabled={downloading}
+                >
+                  {downloading ? 'Generating...' : 'Download DOCX'}
+                </Button>
+              </div>
 
-            <div className="border-2 border-gray-300 rounded-xl p-6 text-center hover:border-blue-primary transition-colors">
-              <div className="text-4xl mb-3">🖼️</div>
-              <h4 className="font-bold text-gray-900 mb-2">PNG (Digital)</h4>
-              <p className="text-sm text-gray-600 mb-4">
-                Just your collage image
-              </p>
-              <Button
-                variant="primary"
-                className="w-full"
-                onClick={handleDownloadPNG}
-              >
-                Download PNG
-              </Button>
+              <div className="border-2 border-gray-300 rounded-xl p-4 text-center hover:border-blue-primary transition-colors">
+                <div className="text-3xl mb-2">📄</div>
+                <h4 className="font-bold text-gray-900 mb-2 text-sm">PDF Document</h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Direct download
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDownloadPDF}
+                  disabled={downloading}
+                >
+                  {downloading ? 'Generating...' : 'Download PDF'}
+                </Button>
+              </div>
+
+              <div className="border-2 border-gray-300 rounded-xl p-4 text-center hover:border-blue-primary transition-colors">
+                <div className="text-3xl mb-2">🖼️</div>
+                <h4 className="font-bold text-gray-900 mb-2 text-sm">PNG Image</h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Canvas only
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDownloadPNG}
+                >
+                  Download PNG
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
