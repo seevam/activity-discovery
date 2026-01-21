@@ -161,3 +161,29 @@ export interface AutoSaveState {
   saving: boolean;
   error?: string;
 }
+
+export interface CollageAnalysis {
+  themes: {
+    title: string;
+    description: string;
+    emoji: string;
+  }[];
+  careerPathways: {
+    title: string;
+    description: string;
+    emoji: string;
+  }[];
+  quoteAnalysis?: {
+    reveals: string[];
+  };
+  nextSteps: string[];
+}
+
+// Extended canvas JSON to include analysis
+export interface ExtendedCanvasJSON {
+  objects: any[];
+  background?: string;
+  backgroundColor?: string;
+  analysis?: CollageAnalysis;
+  selectedQuote?: QuoteSuggestion;
+}

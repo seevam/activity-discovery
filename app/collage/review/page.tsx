@@ -156,6 +156,26 @@ function ReviewContent() {
     setDownloading(true);
 
     try {
+      console.log('[Review] Starting PDF download with analysis...');
+
+      // Step 1: Generate analysis if not exists
+      console.log('[Review] Generating/fetching analysis...');
+      const analysisResponse = await fetch(`/api/collages/${collageId}/analyze`, {
+        method: 'POST',
+      });
+
+      if (!analysisResponse.ok) {
+        console.warn('[Review] Analysis generation failed, continuing anyway...');
+      } else {
+        const analysisData = await analysisResponse.json();
+        console.log('[Review] Analysis ready:', analysisData.cached ? '(cached)' : '(generated)');
+      }
+
+      // Small delay to ensure analysis is saved
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Step 2: Generate PDF with analysis
+      console.log('[Review] Generating PDF...');
       const response = await fetch(`/api/export/pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,6 +195,7 @@ function ReviewContent() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        console.log('[Review] PDF downloaded successfully');
       } else {
         const error = await response.json();
         console.error('PDF export failed:', error);
